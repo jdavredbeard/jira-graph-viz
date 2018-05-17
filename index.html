@@ -3785,16 +3785,28 @@ var links = [
                 .append('a')
                     .attr('href', function(d) { return baseUrl + d.key})
 
-            var nestedCircleNodeElements = anchor.append('circle')
+
+            var nodeElements = svg.append('g')
+                .selectAll('circle')
+                .data(dataset)
+                .enter()
+                .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
                 .call(dragDrop)
 
-            var keyText = svg.append('g')
-              .selectAll('text')
-              .data(dataset)
-              .enter().append('text')
-                .text(node => node.key + "\n" + node.issuetype)
+            var nodeElements2 = svg.append('g')
+                .selectAll('rect')
+                .data(dataset)
+                .enter()
+                .append('rect')
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('style', 'fill:rgb(0,0,255);')
+                .call(dragDrop)
+
+            var nestedKeyText = anchor.append('text')
+                .text(node => node.key)
                 .attr('font-size', 15)
                 .attr('dx', 15)
                 .attr('dy', 4)
@@ -3850,10 +3862,10 @@ var links = [
             }
             
             simulation.nodes(dataset).on('tick', () => {
-                nestedCircleNodeElements
-                    .attr('cx', function (node) { return node.x })
-                    .attr('cy', function (node) { return node.y })
-                keyText
+                nodeElements2
+                    .attr('x', function (node) { return node.x })
+                    .attr('y', function (node) { return node.y })
+                nestedKeyText
                     .attr('x', function (node) { return node.x })
                     .attr('y', function (node) { return node.y })
                 linkElements
