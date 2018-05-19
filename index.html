@@ -3732,7 +3732,7 @@ var links = [
     "target": "EAQ-116"
   }
 ]
-
+            
 
             const width = window.innerWidth
             const height = window.innerHeight
@@ -3754,6 +3754,7 @@ var links = [
                                   .force('link', linkForce)
                                   .force('charge', d3.forceManyBody().strength(-8)) 
                                   .force('center', d3.forceCenter(width / 2, height / 2))
+
 
             var dragDrop = d3.drag().on('start', function (node) {
               node.fx = node.x
@@ -3793,23 +3794,28 @@ var links = [
                 .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
+                .on('mouseover', handleMouseOver)
+                .on('mouseout', handleMouseOut)
                 .call(dragDrop)
+                
 
-            var nodeElements2 = svg.append('g')
-                .selectAll('rect')
-                .data(dataset)
-                .enter()
-                .append('rect')
-                .attr('width', 10)
-                .attr('height', 10)
-                .attr('style', 'fill:rgb(0,0,255);')
-                .call(dragDrop)
+            
 
             var nestedKeyText = anchor.append('text')
                 .text(node => node.key)
                 .attr('font-size', 15)
                 .attr('dx', 15)
                 .attr('dy', 4)
+
+            function handleMouseOver(d, i) {
+                d3.select(this).attr('fill', 'orange');
+                console.log("mouseover " + d.key);
+                console.log(d3.select(this));
+            }
+
+            function handleMouseOut(d, i) {
+                d3.select(this).attr('fill', getNodeColorFromStatus);
+            }
 
             function getNodeColorFromIssueType(node) {
               if (node.issuetype === "Sub-task") {
@@ -3862,9 +3868,9 @@ var links = [
             }
             
             simulation.nodes(dataset).on('tick', () => {
-                nodeElements2
-                    .attr('x', function (node) { return node.x })
-                    .attr('y', function (node) { return node.y })
+                nodeElements
+                    .attr('cx', function (node) { return node.x })
+                    .attr('cy', function (node) { return node.y })
                 nestedKeyText
                     .attr('x', function (node) { return node.x })
                     .attr('y', function (node) { return node.y })
