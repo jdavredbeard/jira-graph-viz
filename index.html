@@ -3740,78 +3740,138 @@ var links = [
 
 
 
-            var svg = d3.select('body')
-                .append('svg')
-                .attr('width', width)
-                .attr('height', height)
+            var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
+                nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
+                node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
+                keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
+                nestedKeyText = svg.selectAll('a');
 
-            
+
+
             var linkForce = d3.forceLink()
-                              .id(function (link) { return link.key })
-                              .strength(.1)
+                  .id(function (link) { return link.key })
+                  .strength(.1);
 
             var simulation = d3.forceSimulation()
-                                  .force('link', linkForce)
-                                  .force('charge', d3.forceManyBody().strength(-8)) 
-                                  .force('center', d3.forceCenter(width / 2, height / 2))
+                  .force('link', linkForce)
+                  .force('charge', d3.forceManyBody().strength(-100)) 
+                  .force('center', d3.forceCenter(width / 2, height / 2))
+                  .force('x', d3.forceX())
+                  .force('y', d3.forceY())
+                  .on('tick', ticked);
 
 
             var dragDrop = d3.drag().on('start', function (node) {
-              node.fx = node.x
-              node.fy = node.y
-            }).on('drag', function (node) {
-              simulation.alphaTarget(0.1).restart()
-              node.fx = d3.event.x
-              node.fy = d3.event.y
-            }).on('end', function (node) {
-              if (!d3.event.active) {
-                simulation.alphaTarget(0)
-              }
-              node.fx = null
-              node.fy = null
-            })
+                  node.fx = node.x
+                  node.fy = node.y
+                }).on('drag', function (node) {
+                  simulation.alphaTarget(0.1).restart()
+                  node.fx = d3.event.x
+                  node.fy = d3.event.y
+                }).on('end', function (node) {
+                  if (!d3.event.active) {
+                    simulation.alphaTarget(0)
+                  }
+                  node.fx = null
+                  node.fy = null
+                });
 
-            var linkElements = svg.append("g")
-                                  .attr("class", "links")
-                                  .selectAll("line")
-                                  .data(links)
-                                  .enter().append("line")
-                                    .attr("stroke-width", 3)
-                                      .attr("stroke", "rgba(50, 50, 50, 0.2)")
+            update();              
 
-            var anchor = svg.append('g')
-                .selectAll('a')
-                .data(dataset)
-                .enter()
-                .append('a')
-                    .attr('href', function(d) { return baseUrl + d.key})
-
-
-            var nodeElements = svg.append('g')
-                .selectAll('circle')
-                .data(dataset)
-                .enter()
+            
+            function update() {
+                node = node.data(dataset);
+                node.exit().remove();
+                node = node.enter()
                 .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
+                .merge(node)
                 .on('mouseover', handleMouseOver)
                 .on('mouseout', handleMouseOut)
-                .call(dragDrop)
+                .on('click', handleClick)
+                //.call(dragDrop);
                 
 
-            
+                nodeLink = nodeLink.data(links);
+                nodeLink.exit().remove();
+                nodeLink = nodeLink.enter()
+                .append("line")
+                .attr("stroke-width", 3)
+                .attr("stroke", "rgba(50, 50, 50, 0.2)")
+                .merge(nodeLink);
 
-            var nestedKeyText = anchor.append('text')
+                keyLink = keyLink.data(dataset);
+                keyLink.exit().remove();
+                keyLink = keyLink.enter()
+                .append('a')
+                .attr('href', function(d) { return baseUrl + d.key})
+                .merge(keyLink);
+
+                nestedKeyText = nestedKeyText.data(dataset);
+                nestedKeyText.exit().remove();
+                nestedKeyText = nestedKeyText.enter()
+                .append('text')
                 .text(node => node.key)
                 .attr('font-size', 15)
                 .attr('dx', 15)
                 .attr('dy', 4)
+                .merge(nestedKeyText);
 
+                simulation.nodes(dataset);
+                simulation.force('link').links(links);
+                simulation.alpha(1).restart();                
+            }
+            
+
+            function handleClick(d, i) {
+                testDataClick = [ 
+                    {
+                        "direction": "outward",
+                        "inwardtype": "Testing discovered",
+                        "issuetype": "Bug",
+                        "key": "EAQ-20000",
+                        "outwardtype": "Discovered while testing",
+                        "priority": "Major",
+                        "status": "Done",
+                        "summary": "[Prod] Back to Assignment Goal page after selected topics when updating from Mastery to Custom assignment",
+                        "type": "Bonfire testing"
+                    },
+                    {
+                        "direction": "inward",
+                        "inwardtype": "is related to",
+                        "issuetype": "QA Test Case",
+                        "key": "EAQ-20001",
+                        "outwardtype": "is related to",
+                        "priority": "TBD",
+                        "status": "Testing Passed",
+                        "summary": "[EAQ] Create Assignment: Instructor - Back button - Update from Mastery to Custom assignment",
+                        "type": "Related"
+                    } 
+                ]
+                testLinkDataClick = [
+                    {
+                        "source": d.key,
+                        "strength": 0.7,
+                        "target": "EAQ-20000"
+                    },
+                    {
+                        "source": d.key,
+                        "strength": 0.7,
+                        "target": "EAQ-20001"
+                    }
+                ]
+                testDataClick.forEach(issue => dataset.push(issue));
+                testLinkDataClick.forEach(link => links.push(link));
+                console.log("click " + d.key);
+                update();
+            }
+                
             function handleMouseOver(d, i) {
                 d3.select(this).attr('fill', 'orange');
                 console.log("mouseover " + d.key);
-                console.log(d3.select(this));
             }
+            
 
             function handleMouseOut(d, i) {
                 d3.select(this).attr('fill', getNodeColorFromStatus);
@@ -3866,22 +3926,21 @@ var links = [
               }
               else return "grey";
             }
-            
-            simulation.nodes(dataset).on('tick', () => {
-                nodeElements
+
+            function ticked() {
+                node
                     .attr('cx', function (node) { return node.x })
-                    .attr('cy', function (node) { return node.y })
+                    .attr('cy', function (node) { return node.y });
                 nestedKeyText
                     .attr('x', function (node) { return node.x })
-                    .attr('y', function (node) { return node.y })
-                linkElements
+                    .attr('y', function (node) { return node.y });
+                nodeLink
                     .attr('x1', function (link) { return link.source.x })
                     .attr('y1', function (link) { return link.source.y })
                     .attr('x2', function (link) { return link.target.x })
-                    .attr('y2', function (link) { return link.target.y })
-                })
+                    .attr('y2', function (link) { return link.target.y });
+            }
 
-            simulation.force('link').links(links)
 
         </script>
     </body>
