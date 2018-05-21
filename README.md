@@ -1,10 +1,10 @@
 # jira-graph-viz
 This project aims to provide a webapp that provides a graph visualization of jira queries using d3 with a python backend. It is still under construction!
 
+To view the project, just open index.html in your browser. There are no dependencies to download. 
+
 To Do:
-- change shape of node by issuetype (use square, rect, diamond?, circle (big, small), oval, custom shape?)
+- visually encode issuetype with shape of nodes (square, circle, triangle, pentagon, etc)
 - modal on mouseover of node - show data pulled in by sprintquery
-- change default nodes shown to just nodes in query
 - onclick of node - add linked nodes to graph / remove linked nodes from graph (but not linked nodes in query)
-- remove strength from python link array
-- change python data structure so it does not include linked tickets at the base level
+- create endpoint for frontend to hit to run query
