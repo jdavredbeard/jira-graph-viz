@@ -2217,7 +2217,6 @@ var links = [
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
                 keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
-                //nestedKeyText = keyLink.append('text').text(node => node.key).attr('font-size', 15).attr('dx', 15).attr('dy', 4);
 
 
 
@@ -2227,7 +2226,7 @@ var links = [
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
-                  .force('charge', d3.forceManyBody().strength(-100)) 
+                  .force('charge', d3.forceManyBody().strength(-120)) 
                   .force('center', d3.forceCenter(width / 2, height / 2))
                   .force('x', d3.forceX())
                   .force('y', d3.forceY())
@@ -2285,23 +2284,6 @@ var links = [
                 .attr('dx', 15)
                 .attr('dy', 4)
                 .merge(keyLink);
-
-                // nestedKeyText = nestedKeyText.data(dataset);
-                // nestedKeyText.exit().remove();
-                // nestedKeyText = nestedKeyText.enter()
-                // .append('text')
-                // .text(node => node.key)
-                // .attr('font-size', 15)
-                // .attr('dx', 15)
-                // .attr('dy', 4)
-                // .merge(nestedKeyText);
-
-                // keyLink.enter()
-                // .append('text')
-                // .text(node => node.key)
-                // .attr('font-size', 15)
-                // .attr('dx', 15)
-                // .attr('dy', 4)
 
                 nestedKeyText = svg.selectAll('text');
 
