@@ -2251,14 +2251,6 @@
                 .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
-                .attr('startX', function(d,i) {
-                    if ('startX' in d) return d.startX;
-                    else return 0;
-                })
-                .attr('startY', function(d,i) {
-                    if ('startY' in d) return d.startY;
-                    else return 0;
-                })
                 .merge(node)
                 //.call(dragDrop)
                 .on('mouseover', handleMouseOver)
@@ -2304,8 +2296,8 @@
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
-                            issue['startX'] = d.x;
-                            issue['startY'] = d.y;
+                            issue['x'] = d.x;
+                            issue['y'] = d.y;
                             dataset.push(issue);
                             nodeSet.add(issue.key);
                             console.log(issue);
