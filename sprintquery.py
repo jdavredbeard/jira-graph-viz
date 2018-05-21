@@ -19,7 +19,9 @@ authed_jira = jira.JIRA(url, basic_auth=(username, password))
 issues = authed_jira.search_issues('project=EAQ and sprint = "EAQ Sprint 15" and issuetype != Sub-task')
 
 tickets = []
-links = []
+querySet = set()
+allLinks = []
+linksInTickets = []
 
 
 for issue in issues:
@@ -43,10 +45,9 @@ for issue in issues:
 				data['priority'] = link.inwardIssue.fields.priority.name
 
 				#d3 links array
-				links.append({
+				allLinks.append({
 				'source': issue.key,
 				'target': link.inwardIssue.key,
-				'strength': 0.7
 				})
 			elif 'outwardIssue' in vars(link).keys():
 				data['direction'] = 'outward'
@@ -56,15 +57,13 @@ for issue in issues:
 				data['issuetype'] = link.outwardIssue.fields.issuetype.name
 				data['priority'] = link.outwardIssue.fields.priority.name
 
-				links.append({
+				allLinks.append({
 				'source': link.outwardIssue.key,
 				'target': issue.key,
-				'strength': 0.7
 				})
 			#add data to array to be held within issue data	
 			link_data.append(data)
-			#also add linked issue as its own issue (for d3 nodes)
-			tickets.append(data)
+			
 
 	data = {
 		'key': issue.key,
@@ -85,9 +84,17 @@ for issue in issues:
 				break 
 
 	tickets.append(data)
+	querySet.add(issue.key)
+
+for link in allLinks:
+	if link['source'] in querySet and link['target'] in querySet:
+		linksInTickets.append(link)
+
+
 
 print(json.dumps(tickets, sort_keys=True, indent=2, separators=(',', ': ')))
-print(json.dumps(links, sort_keys=True, indent=2, separators=(',', ': ')))
+print(json.dumps(linksInTickets, sort_keys=True, indent=2, separators=(',', ': ')))
+#print(json.dumps(allLinks, sort_keys=True, indent=2, separators=(',', ': ')))
 
 
 
