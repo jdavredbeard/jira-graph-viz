@@ -2215,7 +2215,7 @@
 
             var linkForce = d3.forceLink()
                   .id(function (link) { return link.key })
-                  .strength(.05);
+                  .strength(.07);
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
@@ -2223,6 +2223,7 @@
                   .force('center', d3.forceCenter(width / 2, height / 2))
                   .force('x', d3.forceX())
                   .force('y', d3.forceY())
+                  .force('collision', d3.forceCollide().radius(15))
                   .on('tick', ticked);
 
 
@@ -2245,14 +2246,14 @@
 
             
             function update() {
-                node = node.data(dataset);
+                node = node.data(dataset, d => d.key);
                 node.exit().remove();
                 node = node.enter()
                 .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
                 .merge(node)
-                //.call(dragDrop)
+                .call(dragDrop)
                 .on('mouseover', handleMouseOver)
                 .on('mouseout', handleMouseOut)
                 .on('click', handleClick);
@@ -2266,7 +2267,7 @@
                 .attr("stroke", "rgba(50, 50, 50, 0.2)")
                 .merge(nodeLink);
 
-                keyLink = keyLink.data(dataset);
+                keyLink = keyLink.data(dataset, d => d.key);
                 keyLink.exit().remove();
                 keyLink = keyLink.enter()
                 .append('a')
@@ -2291,7 +2292,6 @@
                 var issuelinks = d.issuelinks;
                 //if node has not already been clicked
                 if (!d3.select(this).classed('clicked')) {
-                    console.log(issuelinks);
                     //add nodes to dataset
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
@@ -2300,7 +2300,6 @@
                             issue['y'] = d.y;
                             dataset.push(issue);
                             nodeSet.add(issue.key);
-                            console.log(issue);
                         }
                     });
                     //add links to links
@@ -2311,6 +2310,9 @@
                             'target': issue.key
                         })
                     });
+                    //fix clicked node in place
+                    d.fx = d.x;
+                    d.fy = d.y;
 
                 }
                 else {
@@ -2325,6 +2327,9 @@
                     links.forEach((link, k) => {
                         if (link.addedBy == d.key) links.splice(k, 1);
                     });
+                    //unfix clicked node
+                    d.fx = null;
+                    d.fy = null;
                 }
                 console.log("click " + d.key);
                 console.log("nodeSet size = " + nodeSet.size)
@@ -2335,7 +2340,6 @@
                 
             function handleMouseOver(d, i) {
                 d3.select(this).attr('fill', 'orange');
-                console.log("mouseover " + d.key);
             }
             
 
