@@ -2218,7 +2218,7 @@
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
-                  .force('charge', d3.forceManyBody().strength(-120)) 
+                  .force('charge', d3.forceManyBody().strength(-150)) 
                   .force('center', d3.forceCenter(width / 2, height / 2))
                   .force('x', d3.forceX())
                   .force('y', d3.forceY())
@@ -2293,9 +2293,9 @@
                 //if node has not already been clicked
                 if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
                     //add nodes to dataset
-                    console.log("nodeSet size before add: " + nodeSet.size)
-                    console.log("dataset size before add: " + dataset.size)
-                    console.log("links size before add: " + links.size)
+                    // console.log("nodeSet size before add: " + nodeSet.size)
+                    // console.log("dataset size before add: " + dataset.size)
+                    // console.log("links size before add: " + links.size)
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
@@ -2314,9 +2314,9 @@
                             issueAdded = true;
                         }
                     });
-                    console.log("nodeSet size after add: " + nodeSet.size)
-                    console.log("dataset size after add: " + dataset.size)
-                    console.log("links size after add: " + links.size)
+                    // console.log("nodeSet size after add: " + nodeSet.size)
+                    // console.log("dataset size after add: " + dataset.size)
+                    // console.log("links size after add: " + links.size)
                     //fix clicked node in place
                     if (issueAdded) {
                         d.fx = d.x;
@@ -2325,34 +2325,31 @@
 
                 }
                 else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    console.log("issuelinks size: " + issuelinks.length);
-                    console.log("nodeSet size before delete: " + nodeSet.size);
-                    //console.log("nodeSet before delete: " + [...nodeSet].join(' '));
-                    //console.log("querySet: " + [...querySet].join(' '));
+                    // console.log("issuelinks size: " + issuelinks.length);
+                    // console.log("nodeSet size before delete: " + nodeSet.size);
                     issuelinks.forEach(issue => {
                         if (!querySet.has(issue.key)) {
                             nodeSet.delete(issue.key);
                         }
                     });
-                    console.log("nodeSet size after delete: " + nodeSet.size)
-                    //console.log("nodeSet after delete: " + [...nodeSet].join(' '));
-                    console.log("dataset size before delete: " + dataset.size)
+                    // console.log("nodeSet size after delete: " + nodeSet.size)
+                    // console.log("dataset size before delete: " + dataset.size)
                     dataset.forEach((ticket, j) => {
                         if ('addedBy' in ticket && ticket.addedBy === d.key) {
-                            console.log(ticket);
+                            // console.log(ticket);
                             dataset.delete(ticket);
                         }
                         else if ('addedBy' in ticket) console.log(ticket);
                     });
-                    console.log("dataset size after delete: " + dataset.size)
+                    // console.log("dataset size after delete: " + dataset.size)
 
-                    console.log("links size before delete: " + links.size)
+                    // console.log("links size before delete: " + links.size)
                     links.forEach((link, k) => {
                         if ('addedBy' in link && link.addedBy == d.key) {
                             links.delete(link);
                         }
                     });
-                    console.log("links size after delete: " + links.size)
+                    // console.log("links size after delete: " + links.size)
 
                     //unfix clicked node
                     d.fx = null;
