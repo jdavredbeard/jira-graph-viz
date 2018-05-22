@@ -2252,7 +2252,7 @@
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
                 .merge(node)
-                //.call(dragDrop)
+                .call(dragDrop)
                 .on('mouseover', handleMouseOver)
                 .on('mouseout', handleMouseOut)
                 .on('click', handleClick);
