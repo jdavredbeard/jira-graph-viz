@@ -88,12 +88,15 @@ for issue in issues:
 
 for link in allLinks:
 	if link['source'] in querySet and link['target'] in querySet:
+		link['addedBy'] = 'query'
 		linksInTickets.append(link)
 
 
 
 print(json.dumps(tickets, sort_keys=True, indent=2, separators=(',', ': ')))
 print(json.dumps(linksInTickets, sort_keys=True, indent=2, separators=(',', ': ')))
+print(list(querySet))
+
 #print(json.dumps(allLinks, sort_keys=True, indent=2, separators=(',', ': ')))
 
 
