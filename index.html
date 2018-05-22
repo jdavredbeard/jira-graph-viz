@@ -11,7 +11,7 @@
     <body>
         <script type="text/javascript">
             
-            var dataset = [
+            var dataset = new Set([
               {
                 "assignee": "c.howard",
                 "issuelinks": [
@@ -2141,10 +2141,9 @@
                 "status": "Done",
                 "summary": "Product development of EAQ for Lewis Canada 4e"
               }
-            ]
-            ;
+            ]);
 
-            var links = [
+            var links = new Set([
               {
                 "source": "EAQ-892",
                 "target": "EAQ-680"
@@ -2193,11 +2192,11 @@
                 "source": "EAQ-832",
                 "target": "EAQ-295"
               }
-            ];
+            ]);
 
             var querySet = new Set(['EAQ-416', 'EAQ-844', 'EAQ-683', 'EAQ-897', 'EAQ-823', 'EAQ-883', 'EAQ-629', 'EAQ-892', 'EAQ-352', 'EAQ-887', 'EAQ-418', 'EAQ-773', 'EAQ-901', 'EAQ-881', 'EAQ-891', 'EAQ-785', 'EAQ-747', 'EAQ-491', 'EAQ-684', 'EAQ-295', 'EAQ-818', 'EAQ-832', 'EAQ-758', 'EAQ-869', 'EAQ-802', 'EAQ-718', 'EAQ-900', 'EAQ-902', 'EAQ-878', 'EAQ-825', 'EAQ-596', 'EAQ-585', 'EAQ-819', 'EAQ-893', 'EAQ-784', 'EAQ-838', 'EAQ-873', 'EAQ-824', 'EAQ-826', 'EAQ-463', 'EAQ-124', 'EAQ-898', 'EAQ-612', 'EAQ-821', 'EAQ-763', 'EAQ-125', 'EAQ-680', 'EAQ-830', 'EAQ-692']);
 
-            var nodeSet = querySet;
+            var nodeSet = new Set(querySet);
             
 
             const width = window.innerWidth
@@ -2246,20 +2245,20 @@
 
             
             function update() {
-                node = node.data(dataset, d => d.key);
+                node = node.data([...dataset], d => d.key);
                 node.exit().remove();
                 node = node.enter()
                 .append('circle')
                 .attr('r', 10)
                 .attr('fill', getNodeColorFromStatus)
                 .merge(node)
-                .call(dragDrop)
+                //.call(dragDrop)
                 .on('mouseover', handleMouseOver)
                 .on('mouseout', handleMouseOut)
                 .on('click', handleClick);
                 
 
-                nodeLink = nodeLink.data(links);
+                nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
                 nodeLink.exit().remove();
                 nodeLink = nodeLink.enter()
                 .append("line")
@@ -2267,7 +2266,7 @@
                 .attr("stroke", "rgba(50, 50, 50, 0.2)")
                 .merge(nodeLink);
 
-                keyLink = keyLink.data(dataset, d => d.key);
+                keyLink = keyLink.data([...dataset], d => d.key);
                 keyLink.exit().remove();
                 keyLink = keyLink.enter()
                 .append('a')
@@ -2281,8 +2280,8 @@
 
                 nestedKeyText = svg.selectAll('text');
 
-                simulation.nodes(dataset);
-                simulation.force('link').links(links);
+                simulation.nodes([...dataset]);
+                simulation.force('link').links([...links]);
                 simulation.alpha(1).restart();                
             }
             
@@ -2290,49 +2289,75 @@
             function handleClick(d, i) {
                 //get links from d
                 var issuelinks = d.issuelinks;
+                var issueAdded = false;
                 //if node has not already been clicked
-                if (!d3.select(this).classed('clicked')) {
+                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
                     //add nodes to dataset
+                    console.log("nodeSet size before add: " + nodeSet.size)
+                    console.log("dataset size before add: " + dataset.size)
+                    console.log("links size before add: " + links.size)
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
                             issue['x'] = d.x;
                             issue['y'] = d.y;
-                            dataset.push(issue);
+                            dataset.add(issue);
+                            console.log(issue);
                             nodeSet.add(issue.key);
-                        }
-                    });
-                    //add links to links
-                    issuelinks.forEach(issue => {
-                        links.push({
+                            //add links to links
+                            links.add({
                             'addedBy': d.key,
                             'source': d.key,
                             'target': issue.key
-                        })
+                            });
+                            //set bool
+                            issueAdded = true;
+                        }
                     });
+                    console.log("nodeSet size after add: " + nodeSet.size)
+                    console.log("dataset size after add: " + dataset.size)
+                    console.log("links size after add: " + links.size)
                     //fix clicked node in place
-                    d.fx = d.x;
-                    d.fy = d.y;
+                    if (issueAdded) {
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
 
                 }
-                else {
+                else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
+                    console.log("issuelinks size: " + issuelinks.length);
+                    console.log("nodeSet size before delete: " + nodeSet.size);
+                    //console.log("nodeSet before delete: " + [...nodeSet].join(' '));
+                    //console.log("querySet: " + [...querySet].join(' '));
                     issuelinks.forEach(issue => {
                         if (!querySet.has(issue.key)) {
                             nodeSet.delete(issue.key);
                         }
                     });
+                    console.log("nodeSet size after delete: " + nodeSet.size)
+                    //console.log("nodeSet after delete: " + [...nodeSet].join(' '));
+                    console.log("dataset size before delete: " + dataset.size)
                     dataset.forEach((ticket, j) => {
-                        if (ticket.addedBy == d.key) dataset.splice(j, 1);
+                        if ('addedBy' in ticket && ticket.addedBy === d.key) {
+                            console.log(ticket);
+                            dataset.delete(ticket);
+                        }
+                        else if ('addedBy' in ticket) console.log(ticket);
                     });
+                    console.log("dataset size after delete: " + dataset.size)
+
+                    console.log("links size before delete: " + links.size)
                     links.forEach((link, k) => {
-                        if (link.addedBy == d.key) links.splice(k, 1);
+                        if ('addedBy' in link && link.addedBy == d.key) {
+                            links.delete(link);
+                        }
                     });
+                    console.log("links size after delete: " + links.size)
+
                     //unfix clicked node
                     d.fx = null;
                     d.fy = null;
                 }
-                console.log("click " + d.key);
-                console.log("nodeSet size = " + nodeSet.size)
                 //toggle class = 'clicked'
                 d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
                 update();
