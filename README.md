@@ -34,10 +34,24 @@ colors = {
                 "Done": "#4cd964" // green
               }
 ```
+- links between tickets are color coded by link type:
+```
+colors = {
+                "Relates": "#8e8e93", //grey
+                "Related": "#8e8e93", //grey
+                "Dependency": "orange", 
+                "Blocks": "red",
+                "Bonfire Testing": "purple",
+                "Issue Split": "#007aff", //dark blue
+                "Cloners": "#5ac8fa", //light blue
+              }
+```
 
 To Do:
-- visually encode issuetype with shape of nodes (square, circle, triangle, pentagon, etc)
+
 - modal on mouseover of node - show data pulled in by sprintquery
 - add textbox and button to enter query
 - create endpoint for frontend to hit to run query
 - add legend for colors and shapes
+- put black border around nodes from query
+

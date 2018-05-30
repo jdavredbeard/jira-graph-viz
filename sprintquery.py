@@ -48,6 +48,8 @@ for issue in issues:
 				allLinks.append({
 				'source': issue.key,
 				'target': link.inwardIssue.key,
+				'type': link.type.name,
+				'direction': 'inward'
 				})
 			elif 'outwardIssue' in vars(link).keys():
 				data['direction'] = 'outward'
@@ -58,8 +60,10 @@ for issue in issues:
 				data['priority'] = link.outwardIssue.fields.priority.name
 
 				allLinks.append({
-				'source': link.outwardIssue.key,
-				'target': issue.key,
+				'source': issue.key,
+				'target': link.outwardIssue.key,
+				'type': link.type.name,
+				'direction': 'outward'
 				})
 			#add data to array to be held within issue data	
 			link_data.append(data)
