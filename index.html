@@ -2145,53 +2145,89 @@
 
             var links = new Set([
               {
-                "source": "EAQ-892",
-                "target": "EAQ-680"
-              },
-              {
-                "source": "EAQ-891",
-                "target": "EAQ-680"
-              },
-              {
-                "source": "EAQ-832",
-                "target": "EAQ-295"
-              },
-              {
-                "source": "EAQ-821",
-                "target": "EAQ-295"
-              },
-              {
-                "source": "EAQ-684",
-                "target": "EAQ-295"
-              },
-              {
-                "source": "EAQ-891",
-                "target": "EAQ-680"
-              },
-              {
-                "source": "EAQ-892",
-                "target": "EAQ-680"
-              },
-              {
-                "source": "EAQ-612",
-                "target": "EAQ-596"
-              },
-              {
-                "source": "EAQ-612",
-                "target": "EAQ-596"
-              },
-              {
-                "source": "EAQ-684",
-                "target": "EAQ-295"
-              },
-              {
-                "source": "EAQ-821",
-                "target": "EAQ-295"
-              },
-              {
-                "source": "EAQ-832",
-                "target": "EAQ-295"
-              }
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-892",
+                  "target": "EAQ-680",
+                  "type": "Relates"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-891",
+                  "target": "EAQ-680",
+                  "type": "Relates"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-832",
+                  "target": "EAQ-295",
+                  "type": "Relates"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-821",
+                  "target": "EAQ-295",
+                  "type": "Related"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-684",
+                  "target": "EAQ-295",
+                  "type": "Blocks"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-680",
+                  "target": "EAQ-891",
+                  "type": "Relates"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-680",
+                  "target": "EAQ-892",
+                  "type": "Relates"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "inward",
+                  "source": "EAQ-612",
+                  "target": "EAQ-596",
+                  "type": "Blocks"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-596",
+                  "target": "EAQ-612",
+                  "type": "Blocks"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-295",
+                  "target": "EAQ-684",
+                  "type": "Blocks"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-295",
+                  "target": "EAQ-821",
+                  "type": "Related"
+                },
+                {
+                  "addedBy": "query",
+                  "direction": "outward",
+                  "source": "EAQ-295",
+                  "target": "EAQ-832",
+                  "type": "Relates"
+                }
             ]);
 
             var querySet = new Set(['EAQ-416', 'EAQ-844', 'EAQ-683', 'EAQ-897', 'EAQ-823', 'EAQ-883', 'EAQ-629', 'EAQ-892', 'EAQ-352', 'EAQ-887', 'EAQ-418', 'EAQ-773', 'EAQ-901', 'EAQ-881', 'EAQ-891', 'EAQ-785', 'EAQ-747', 'EAQ-491', 'EAQ-684', 'EAQ-295', 'EAQ-818', 'EAQ-832', 'EAQ-758', 'EAQ-869', 'EAQ-802', 'EAQ-718', 'EAQ-900', 'EAQ-902', 'EAQ-878', 'EAQ-825', 'EAQ-596', 'EAQ-585', 'EAQ-819', 'EAQ-893', 'EAQ-784', 'EAQ-838', 'EAQ-873', 'EAQ-824', 'EAQ-826', 'EAQ-463', 'EAQ-124', 'EAQ-898', 'EAQ-612', 'EAQ-821', 'EAQ-763', 'EAQ-125', 'EAQ-680', 'EAQ-830', 'EAQ-692']);
@@ -2222,7 +2258,7 @@
                   .force('center', d3.forceCenter(width / 2, height / 2))
                   .force('x', d3.forceX())
                   .force('y', d3.forceY())
-                  .force('collision', d3.forceCollide().radius(15))
+                  .force('collision', d3.forceCollide().radius(45))
                   .on('tick', ticked);
 
 
@@ -2262,8 +2298,9 @@
                 nodeLink.exit().remove();
                 nodeLink = nodeLink.enter()
                 .append("line")
-                .attr("stroke-width", 3)
-                .attr("stroke", "rgba(50, 50, 50, 0.2)")
+                .attr("stroke-width", 2)
+                .attr("stroke", getLineColorFromLinkType)
+                .attr("stroke-dasharray", [5,6])
                 .merge(nodeLink);
 
                 keyLink = keyLink.data([...dataset], d => d.key);
@@ -2282,7 +2319,7 @@
 
                 simulation.nodes([...dataset]);
                 simulation.force('link').links([...links]);
-                simulation.alpha(1).restart();                
+                simulation.alpha(.8).restart();                
             }
             
 
@@ -2308,7 +2345,8 @@
                             links.add({
                             'addedBy': d.key,
                             'source': d.key,
-                            'target': issue.key
+                            'target': issue.key,
+                            'type': issue.type
                             });
                             //set bool
                             issueAdded = true;
@@ -2383,6 +2421,20 @@
               }
               if (node.status in colors) return colors[node.status];
               else return "grey";
+            }
+
+            function getLineColorFromLinkType(link) {
+                colors = {
+                "Relates": "#8e8e93", //grey
+                "Related": "#8e8e93", //grey
+                "Dependency": "orange", 
+                "Blocks": "red",
+                "Bonfire Testing": "purple",
+                "Issue Split": "#007aff", //dark blue
+                "Cloners": "#5ac8fa", //light blue
+              }
+              if (link.type in colors) return colors[link.type];
+              else return "black";    
             }
 
             function ticked() {
