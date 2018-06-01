@@ -16,10 +16,12 @@ password: <jira password>
 ```
 Current Functionality:
 - page loads with nodes representing tickets from jira query and lines representing links between linked tickets within the query
-- jira key labels are links to jira tickets
-- clicking nodes will add/remove linked issues that are not contained in the jira query
+- subtasks of tickets within query are represented as links (see color coding of links below)
+- jira key labels (ex. EAQ-125)  are hyperlinks to actual jira tickets
+- clicking nodes will add/remove linked issues and subtasks that are not contained in the jira query
 - nodes are draggable
 - on mouseover, node color changes to orange
+- tickets within the original query have a black border
 - nodes are color coded by status: 
 ```
 colors = {
@@ -36,14 +38,15 @@ colors = {
 ```
 - links between tickets are color coded by link type:
 ```
-colors = {
-                "Relates": "#8e8e93", //grey
-                "Related": "#8e8e93", //grey
+colors = {	
+		"Relates": "green",
+                "Related": "green",
                 "Dependency": "orange", 
                 "Blocks": "red",
                 "Bonfire Testing": "purple",
                 "Issue Split": "#007aff", //dark blue
                 "Cloners": "#5ac8fa", //light blue
+                "subtask": "black"
               }
 ```
 
@@ -53,5 +56,4 @@ To Do:
 - add textbox and button to enter query
 - create endpoint for frontend to hit to run query
 - add legend for colors and shapes
-- put black border around nodes from query
 
