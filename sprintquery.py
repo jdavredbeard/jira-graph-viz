@@ -25,10 +25,11 @@ linksInTickets = []
 
 
 for issue in issues:
-	jira_links = issue.fields.issuelinks
+	links = issue.fields.issuelinks
+	subtasks = issue.fields.subtasks
 	link_data = []
 
-	for link in jira_links:
+	for link in links:
 		if link is not None:
 
 			data = {
@@ -68,6 +69,18 @@ for issue in issues:
 			#add data to array to be held within issue data	
 			link_data.append(data)
 			
+	for subtask in subtasks:
+		if subtask is not None:
+			data = {
+				'type': 'subtask',
+				'key': subtask.key,
+				'summary': subtask.fields.summary,
+				'status': subtask.fields.status.name,
+				'priority': subtask.fields.priority.name
+			}
+			link_data.append(data)
+
+
 
 	data = {
 		'key': issue.key,
