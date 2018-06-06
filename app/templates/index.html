@@ -1,0 +1,287 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>jira-graph-viz</title>
+        <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+        <style type="text/css">      
+        </style>
+    </head>
+    <body>
+    	<h2>jira-graph-viz</h2>
+        <form action="" method="post">
+        	{{ form.hidden_tag() }}
+        	<p>
+        		{{ form.query.label }}<br>
+        		{{ form.query(size=100) }}
+        	</p>
+        	<p>
+        		{{ form.submit() }}
+        	</p>
+
+        </form>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+
+        <script type="text/javascript">
+			var test = {{ dataset | tojson }}
+			console.log(test)
+
+        	// function decodeHtml(html) {
+        	//     var txt = document.createElement("textarea");
+        	//     txt.innerHTML = html;
+        	//     return txt.value;
+        	// } 
+        	// var encodedDataSet = '{{ dataset }}';
+        	// var decodedDataSet = decodeHtml(encodedDataSet);
+            var dataset = new Set({{ dataset | tojson }});
+            //console.log(decodedDataSet);
+
+            // var encodedLinks = '{{ links }}';
+            // var decodedLinks = decodeHtml(encodedLinks);
+            var links = new Set({{ links | tojson }});
+
+            // var encodedQueryList = '{{ query_list }}';
+            // var decodedQueryList = decodeHtml(encodedQueryList);
+            var querySet = new Set({{ query_list | tojson }});
+
+            var nodeSet = new Set(querySet);
+            
+
+            const width = window.innerWidth
+            const height = window.innerHeight
+            const baseUrl = 'https://elsevier-healthsolutions.atlassian.net/browse/'
+
+
+
+            var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
+                nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
+                node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
+                keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
+
+
+
+            var linkForce = d3.forceLink()
+                  .id(function (link) { return link.key })
+                  .strength(.07);
+
+            var simulation = d3.forceSimulation()
+                  .force('link', linkForce)
+                  .force('charge', d3.forceManyBody().strength(-150)) 
+                  .force('center', d3.forceCenter(width / 2, height / 2))
+                  .force('x', d3.forceX())
+                  .force('y', d3.forceY())
+                  .force('collision', d3.forceCollide().radius(45))
+                  .on('tick', ticked);
+
+
+            var dragDrop = d3.drag().on('start', function (node) {
+                  node.fx = node.x
+                  node.fy = node.y
+                }).on('drag', function (node) {
+                  simulation.alphaTarget(0.6).restart()
+                  node.fx = d3.event.x
+                  node.fy = d3.event.y
+                }).on('end', function (node) {
+                  if (!d3.event.active) {
+                    simulation.alphaTarget(0)
+                  }
+                  node.fx = null
+                  node.fy = null
+                });
+
+            update();              
+
+            
+            function update() {
+                node = node.data([...dataset], d => d.key);
+                node.exit().remove();
+                node = node.enter()
+                .append('circle')
+                .attr('r', 10)
+                .attr('fill', getNodeColorFromStatus)
+                .attr('stroke', getStrokeColor)
+                .attr('stroke-width', 3)
+                .merge(node)
+                .call(dragDrop)
+                .on('mouseover', handleMouseOver)
+                .on('mouseout', handleMouseOut)
+                .on('click', handleClick);
+                
+
+                nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
+                nodeLink.exit().remove();
+                nodeLink = nodeLink.enter()
+                .append("line")
+                .attr("stroke-width", 2)
+                .attr("stroke", getLineColorFromLinkType)
+                .attr("stroke-dasharray", [5,6])
+                .merge(nodeLink);
+
+                keyLink = keyLink.data([...dataset], d => d.key);
+                keyLink.exit().remove();
+                keyLink = keyLink.enter()
+                .append('a')
+                .attr('href', function(d) { return baseUrl + d.key})
+                .append('text')
+                .text(node => node.key)
+                .attr('font-size', 15)
+                .attr('dx', 15)
+                .attr('dy', 4)
+                .merge(keyLink);
+
+                nestedKeyText = svg.selectAll('text');
+
+                simulation.nodes([...dataset]);
+                simulation.force('link').links([...links]);
+                simulation.alpha(.8).restart();                
+            }
+            
+
+            function handleClick(d, i) {
+                //get links from d
+                var issuelinks = d.issuelinks;
+                var issueAdded = false;
+                //if node has not already been clicked
+                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
+                    //add nodes to dataset
+                    // console.log("nodeSet size before add: " + nodeSet.size)
+                    // console.log("dataset size before add: " + dataset.size)
+                    // console.log("links size before add: " + links.size)
+                    issuelinks.forEach(issue => {
+                        if (!nodeSet.has(issue.key)) {
+                            issue['addedBy'] = d.key;
+                            issue['x'] = d.x;
+                            issue['y'] = d.y;
+                            dataset.add(issue);
+                            console.log(issue);
+                            nodeSet.add(issue.key);
+                            //add links to links
+                            links.add({
+                            'addedBy': d.key,
+                            'source': d.key,
+                            'target': issue.key,
+                            'type': issue.type
+                            });
+                            //set bool
+                            issueAdded = true;
+                        }
+                    });
+                    // console.log("nodeSet size after add: " + nodeSet.size)
+                    // console.log("dataset size after add: " + dataset.size)
+                    // console.log("links size after add: " + links.size)
+                    //fix clicked node in place
+                    if (issueAdded) {
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    }
+
+                }
+                else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
+                    // console.log("issuelinks size: " + issuelinks.length);
+                    // console.log("nodeSet size before delete: " + nodeSet.size);
+                    issuelinks.forEach(issue => {
+                        if (!querySet.has(issue.key)) {
+                            nodeSet.delete(issue.key);
+                        }
+                    });
+                    // console.log("nodeSet size after delete: " + nodeSet.size)
+                    // console.log("dataset size before delete: " + dataset.size)
+                    dataset.forEach((ticket, j) => {
+                        if ('addedBy' in ticket && ticket.addedBy === d.key) {
+                            // console.log(ticket);
+                            dataset.delete(ticket);
+                        }
+                        else if ('addedBy' in ticket) console.log(ticket);
+                    });
+                    // console.log("dataset size after delete: " + dataset.size)
+
+                    // console.log("links size before delete: " + links.size)
+                    links.forEach((link, k) => {
+                        if ('addedBy' in link && link.addedBy == d.key) {
+                            links.delete(link);
+                        }
+                    });
+                    // console.log("links size after delete: " + links.size)
+
+                    //unfix clicked node
+                    d.fx = null;
+                    d.fy = null;
+                }
+                //toggle class = 'clicked'
+                d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
+                update();
+            }
+                
+            function handleMouseOver(d, i) {
+                d3.select(this).attr('fill', 'orange');
+            }
+            
+
+            function handleMouseOut(d, i) {
+                d3.select(this).attr('fill', getNodeColorFromStatus);
+            }
+
+            function getStrokeColor(d) {
+                if (querySet.has(d.key)) return "black";
+                else return getNodeColorFromStatus;
+            }
+
+            function getNodeColorFromStatus(node) {
+              colors = {
+                "To Do": "#8e8e93", //grey
+                "Icebox": "aqua",
+                "In Progress": "#ffcc00", //yellow
+                "Code Review": "orange",
+                "Blocked": "red",
+                "Testing Failed": "purple",
+                "Ready for Testing": "#007aff", //dark blue
+                "Ready for Acceptance": "#5ac8fa", //light blue
+                "Done": "#4cd964" // green
+              }
+              if (node.status in colors) return colors[node.status];
+              else return "grey";
+            }
+
+            function getLineColorFromLinkType(link) {
+                colors = {
+                "Relates": "green", 
+                "Related": "green", 
+                "Dependency": "orange", 
+                "Blocks": "red",
+                "Bonfire Testing": "purple",
+                "Issue Split": "#007aff", //dark blue
+                "Cloners": "#5ac8fa", //light blue
+                "subtask": "black"
+              }
+              if (link.type in colors) return colors[link.type];
+              else return "black";    
+            }
+
+            function ticked() {
+                node
+                    .attr('cx', function (node) { return node.x })
+                    .attr('cy', function (node) { return node.y });
+                nestedKeyText
+                    .attr('x', function (node) { return node.x })
+                    .attr('y', function (node) { return node.y });
+                nodeLink
+                    .attr('x1', function (link) { return link.source.x })
+                    .attr('y1', function (link) { return link.source.y })
+                    .attr('x2', function (link) { return link.target.x })
+                    .attr('y2', function (link) { return link.target.y });
+            }
+
+
+        </script>
+    </body>
+</html>

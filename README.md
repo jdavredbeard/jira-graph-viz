@@ -1,19 +1,8 @@
 # jira-graph-viz
-This project is a webapp that provides a graph visualization of jira queries using d3 with a python backend. It is still under construction!
+This project is a webapp that provides a graph visualization of jira queries using d3 with a python/flask backend used to host the page, contact the jira api, and parse the data. It is still under construction!
 
-To view the project, just open index.html in your browser. There are no dependencies to download. 
+To view the project: more details coming soon
 
-Index.html is currently running on mock data. 
-
-To run sprintquery.py, create a file called config.ini in the project directory like so:
-```
-[Basic]
-url: https://elsevier-healthsolutions.atlassian.net
-
-[Auth]
-username: <jira username>
-password: <jira password>
-```
 Current Functionality:
 - page loads with nodes representing tickets from jira query and lines representing links between linked tickets within the query
 - subtasks of tickets within query are represented as links (see color coding of links below)
@@ -53,7 +42,7 @@ colors = {
 To Do:
 
 - modal on mouseover of node - show data pulled in by sprintquery
-- add textbox and button to enter query
-- create endpoint for frontend to hit to run query
 - add legend for colors and shapes
-
+- add support for epic links
+- add option to group by epics
+- add support for showing more levels of linked tickets
