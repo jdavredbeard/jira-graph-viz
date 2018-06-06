@@ -1,0 +1,4 @@
+configparser
+jira
+flask
+flask_wtf

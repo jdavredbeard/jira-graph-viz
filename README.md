@@ -1,7 +1,12 @@
 # jira-graph-viz
 This project is a webapp that provides a graph visualization of jira queries using d3 with a python/flask backend used to host the page, contact the jira api, and parse the data. It is still under construction!
 
-To view the project: more details coming soon
+To run:
+
+After cloning the repo:
+`pip install -r requirements.txt`
+`flask run`
+Open `localhost:5000`
 
 Current Functionality:
 - page loads with nodes representing tickets from jira query and lines representing links between linked tickets within the query
