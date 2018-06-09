@@ -36,22 +36,12 @@
 			var test = {{ dataset | tojson }}
 			console.log(test)
 
-        	// function decodeHtml(html) {
-        	//     var txt = document.createElement("textarea");
-        	//     txt.innerHTML = html;
-        	//     return txt.value;
-        	// } 
-        	// var encodedDataSet = '{{ dataset }}';
-        	// var decodedDataSet = decodeHtml(encodedDataSet);
+        
             var dataset = new Set({{ dataset | tojson }});
-            //console.log(decodedDataSet);
-
-            // var encodedLinks = '{{ links }}';
-            // var decodedLinks = decodeHtml(encodedLinks);
+            
             var links = new Set({{ links | tojson }});
 
-            // var encodedQueryList = '{{ query_list }}';
-            // var decodedQueryList = decodeHtml(encodedQueryList);
+           
             var querySet = new Set({{ query_list | tojson }});
 
             var nodeSet = new Set(querySet);
@@ -152,11 +142,7 @@
                 var issuelinks = d.issuelinks;
                 var issueAdded = false;
                 //if node has not already been clicked
-                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    //add nodes to dataset
-                    // console.log("nodeSet size before add: " + nodeSet.size)
-                    // console.log("dataset size before add: " + dataset.size)
-                    // console.log("links size before add: " + links.size)
+                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {             
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
@@ -175,11 +161,7 @@
                             //set bool
                             issueAdded = true;
                         }
-                    });
-                    // console.log("nodeSet size after add: " + nodeSet.size)
-                    // console.log("dataset size after add: " + dataset.size)
-                    // console.log("links size after add: " + links.size)
-                    //fix clicked node in place
+                    });                    
                     if (issueAdded) {
                         d.fx = d.x;
                         d.fy = d.y;
@@ -187,15 +169,13 @@
 
                 }
                 else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    // console.log("issuelinks size: " + issuelinks.length);
-                    // console.log("nodeSet size before delete: " + nodeSet.size);
+                    
                     issuelinks.forEach(issue => {
                         if (!querySet.has(issue.key)) {
                             nodeSet.delete(issue.key);
                         }
                     });
-                    // console.log("nodeSet size after delete: " + nodeSet.size)
-                    // console.log("dataset size before delete: " + dataset.size)
+                    
                     dataset.forEach((ticket, j) => {
                         if ('addedBy' in ticket && ticket.addedBy === d.key) {
                             // console.log(ticket);
@@ -203,15 +183,13 @@
                         }
                         else if ('addedBy' in ticket) console.log(ticket);
                     });
-                    // console.log("dataset size after delete: " + dataset.size)
-
-                    // console.log("links size before delete: " + links.size)
+                   
                     links.forEach((link, k) => {
                         if ('addedBy' in link && link.addedBy == d.key) {
                             links.delete(link);
                         }
                     });
-                    // console.log("links size after delete: " + links.size)
+                    
 
                     //unfix clicked node
                     d.fx = null;
