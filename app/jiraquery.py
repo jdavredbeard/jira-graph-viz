@@ -17,7 +17,7 @@ def get_jira_query_results(query_string):
 
 
 	authed_jira = jira.JIRA(url, basic_auth=(username, password))
-	issues = authed_jira.search_issues(query_string)
+	issues = authed_jira.search_issues(query_string, fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006')
 
 	tickets = []
 	querySet = set()

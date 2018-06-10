@@ -4,7 +4,7 @@
     <head>
         <meta charset="utf-8">
         <title>jira-graph-viz</title>
-        <script type="text/javascript" src="https://d3js.org/d3.v4.min.js"></script>
+        <script type="text/javascript" src="{{ url_for('static', filename= 'd3.min.js' )}}"></script>
         <style type="text/css">      
         </style>
     </head>
@@ -21,6 +21,11 @@
         	</p>
 
         </form>
+        <br>
+        <form>
+            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
+            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
+        </form>
         <hr>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -33,25 +38,14 @@
         {% endwith %}
 
         <script type="text/javascript">
-			var test = {{ dataset | tojson }}
-			console.log(test)
+			
 
-        	// function decodeHtml(html) {
-        	//     var txt = document.createElement("textarea");
-        	//     txt.innerHTML = html;
-        	//     return txt.value;
-        	// } 
-        	// var encodedDataSet = '{{ dataset }}';
-        	// var decodedDataSet = decodeHtml(encodedDataSet);
+        
             var dataset = new Set({{ dataset | tojson }});
-            //console.log(decodedDataSet);
-
-            // var encodedLinks = '{{ links }}';
-            // var decodedLinks = decodeHtml(encodedLinks);
+            
             var links = new Set({{ links | tojson }});
 
-            // var encodedQueryList = '{{ query_list }}';
-            // var decodedQueryList = decodeHtml(encodedQueryList);
+           
             var querySet = new Set({{ query_list | tojson }});
 
             var nodeSet = new Set(querySet);
@@ -72,7 +66,7 @@
 
             var linkForce = d3.forceLink()
                   .id(function (link) { return link.key })
-                  .strength(.07);
+                  .strength(.25);
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
@@ -101,8 +95,78 @@
 
             update();              
 
+            document.getElementById("allLinkedTickets").addEventListener("click", function() {
+                var toAddtoDataset = new Set();
+                    
+                    console.log("showAllLinkedTickets");
+
+                    [...dataset].forEach(issue => {
+                        //if this is an issue from the original query (and thus has issuelinks field)
+                        if ("issuelinks" in issue) {  
+                            issue.issuelinks.forEach(linkedIssue => {
+                                if (!nodeSet.has(linkedIssue.key)) {
+                                linkedIssue['addedBy'] = issue.key;
+                                toAddtoDataset.add(linkedIssue);
+                                //console.log(linkedIssue);
+                                nodeSet.add(linkedIssue.key);
+                                //add links to links
+                                links.add({
+                                'addedBy': issue.key,
+                                'source': issue.key,
+                                'target': linkedIssue.key,
+                                'type': linkedIssue.type
+                                });
+                                
+                            }
+
+                            });
+                        }    
+                    });
+                    
+                    [...toAddtoDataset].forEach(linkedIssue => {
+                        dataset.add(linkedIssue);
+                    })
+                    d3.selectAll('circle').classed('clicked', true);
+                    console.log("adding all linked tickets");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
+                update();
+            });
+            document.getElementById("queryTicketsOnly").addEventListener("click", function() {
+                nodeSet.forEach(key => {
+                    if (!querySet.has(key)) {
+                        nodeSet.delete(key);
+                    }
+                });
+                
+                dataset.forEach((ticket, j) => {
+                    if ('addedBy' in ticket) {
+                        // console.log(ticket);
+                        dataset.delete(ticket);
+                    }
+                });
+               
+                links.forEach((link, k) => {
+                    if ('addedBy' in link && link.addedBy != 'query') {
+                        links.delete(link);
+                    }
+                });
+                d3.selectAll('circle').classed('clicked', false);
+                console.log("deleting all linked tickets outside of query");
+                console.log("nodeSet size: " + nodeSet.size);
+                console.log("querySet size: " + querySet.size);
+                console.log("links size: " + links.size);
+                console.log("dataset size: " + dataset.size);
+                console.log("nodeSet: " + [...nodeSet].toString());
+
+                update();
+            });
             
             function update() {
+
                 node = node.data([...dataset], d => d.key);
                 node.exit().remove();
                 node = node.enter()
@@ -152,18 +216,14 @@
                 var issuelinks = d.issuelinks;
                 var issueAdded = false;
                 //if node has not already been clicked
-                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    //add nodes to dataset
-                    // console.log("nodeSet size before add: " + nodeSet.size)
-                    // console.log("dataset size before add: " + dataset.size)
-                    // console.log("links size before add: " + links.size)
+                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {             
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
                             issue['x'] = d.x;
                             issue['y'] = d.y;
                             dataset.add(issue);
-                            console.log(issue);
+                            //console.log(issue);
                             nodeSet.add(issue.key);
                             //add links to links
                             links.add({
@@ -175,47 +235,54 @@
                             //set bool
                             issueAdded = true;
                         }
-                    });
-                    // console.log("nodeSet size after add: " + nodeSet.size)
-                    // console.log("dataset size after add: " + dataset.size)
-                    // console.log("links size after add: " + links.size)
-                    //fix clicked node in place
+                    });                    
+                    
+
                     if (issueAdded) {
                         d.fx = d.x;
                         d.fy = d.y;
                     }
+                    console.log("adding linked tickets of clicked ticket");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
 
                 }
                 else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    // console.log("issuelinks size: " + issuelinks.length);
-                    // console.log("nodeSet size before delete: " + nodeSet.size);
+                    console.log("entering delete links control")
                     issuelinks.forEach(issue => {
                         if (!querySet.has(issue.key)) {
                             nodeSet.delete(issue.key);
                         }
                     });
-                    // console.log("nodeSet size after delete: " + nodeSet.size)
-                    // console.log("dataset size before delete: " + dataset.size)
+                    
                     dataset.forEach((ticket, j) => {
                         if ('addedBy' in ticket && ticket.addedBy === d.key) {
                             // console.log(ticket);
                             dataset.delete(ticket);
                         }
-                        else if ('addedBy' in ticket) console.log(ticket);
+                        //else if ('addedBy' in ticket) console.log(ticket);
                     });
-                    // console.log("dataset size after delete: " + dataset.size)
-
-                    // console.log("links size before delete: " + links.size)
+                   
                     links.forEach((link, k) => {
                         if ('addedBy' in link && link.addedBy == d.key) {
                             links.delete(link);
                         }
                     });
-                    // console.log("links size after delete: " + links.size)
+                    
 
                     //unfix clicked node
                     d.fx = null;
                     d.fy = null;
+
+                    console.log("deleting linked tickets of clicked ticket");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
                 }
                 //toggle class = 'clicked'
                 d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
