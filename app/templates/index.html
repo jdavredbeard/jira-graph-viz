@@ -39,43 +39,7 @@
 
         <script type="text/javascript">
 			
-            document.getElementById("allLinkedTickets").addEventListener("click", function() {
-                var toAddtoDataset = new Set();
-                    
-                    console.log("showAllLinkedTickets");
 
-                    [...dataset].forEach(issue => {
-                        //if this is an issue from the original query (and thus has issuelinks field)
-                        if ("issuelinks" in issue) {  
-                            issue.issuelinks.forEach(linkedIssue => {
-                                if (!nodeSet.has(linkedIssue.key)) {
-                                linkedIssue['addedBy'] = issue.key;
-                                toAddtoDataset.add(linkedIssue);
-                                //console.log(linkedIssue);
-                                nodeSet.add(linkedIssue.key);
-                                //add links to links
-                                links.add({
-                                'addedBy': issue.key,
-                                'source': issue.key,
-                                'target': linkedIssue.key,
-                                'type': linkedIssue.type
-                                });
-                                
-                            }
-
-                            });
-                        }    
-                    });
-                    
-                    [...toAddtoDataset].forEach(linkedIssue => {
-                        dataset.add(linkedIssue);
-                    })
-                    d3.selectAll('circle').classed('clicked', true);
-                update();
-            });
-            document.getElementById("queryTicketsOnly").addEventListener("click", function() {
-                update();
-            });
         
             var dataset = new Set({{ dataset | tojson }});
             
@@ -131,6 +95,75 @@
 
             update();              
 
+            document.getElementById("allLinkedTickets").addEventListener("click", function() {
+                var toAddtoDataset = new Set();
+                    
+                    console.log("showAllLinkedTickets");
+
+                    [...dataset].forEach(issue => {
+                        //if this is an issue from the original query (and thus has issuelinks field)
+                        if ("issuelinks" in issue) {  
+                            issue.issuelinks.forEach(linkedIssue => {
+                                if (!nodeSet.has(linkedIssue.key)) {
+                                linkedIssue['addedBy'] = issue.key;
+                                toAddtoDataset.add(linkedIssue);
+                                //console.log(linkedIssue);
+                                nodeSet.add(linkedIssue.key);
+                                //add links to links
+                                links.add({
+                                'addedBy': issue.key,
+                                'source': issue.key,
+                                'target': linkedIssue.key,
+                                'type': linkedIssue.type
+                                });
+                                
+                            }
+
+                            });
+                        }    
+                    });
+                    
+                    [...toAddtoDataset].forEach(linkedIssue => {
+                        dataset.add(linkedIssue);
+                    })
+                    d3.selectAll('circle').classed('clicked', true);
+                    console.log("adding all linked tickets");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
+                update();
+            });
+            document.getElementById("queryTicketsOnly").addEventListener("click", function() {
+                nodeSet.forEach(key => {
+                    if (!querySet.has(key)) {
+                        nodeSet.delete(key);
+                    }
+                });
+                
+                dataset.forEach((ticket, j) => {
+                    if ('addedBy' in ticket) {
+                        // console.log(ticket);
+                        dataset.delete(ticket);
+                    }
+                });
+               
+                links.forEach((link, k) => {
+                    if ('addedBy' in link && link.addedBy != 'query') {
+                        links.delete(link);
+                    }
+                });
+                d3.selectAll('circle').classed('clicked', false);
+                console.log("deleting all linked tickets outside of query");
+                console.log("nodeSet size: " + nodeSet.size);
+                console.log("querySet size: " + querySet.size);
+                console.log("links size: " + links.size);
+                console.log("dataset size: " + dataset.size);
+                console.log("nodeSet: " + [...nodeSet].toString());
+
+                update();
+            });
             
             function update() {
 
@@ -209,6 +242,12 @@
                         d.fx = d.x;
                         d.fy = d.y;
                     }
+                    console.log("adding linked tickets of clicked ticket");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
 
                 }
                 else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
@@ -237,6 +276,13 @@
                     //unfix clicked node
                     d.fx = null;
                     d.fy = null;
+
+                    console.log("deleting linked tickets of clicked ticket");
+                    console.log("nodeSet size: " + nodeSet.size);
+                    console.log("querySet size: " + querySet.size);
+                    console.log("links size: " + links.size);
+                    console.log("dataset size: " + dataset.size);
+                    console.log("nodeSet: " + [...nodeSet].toString());
                 }
                 //toggle class = 'clicked'
                 d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
