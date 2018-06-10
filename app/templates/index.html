@@ -41,7 +41,39 @@
             var showAllLinkedTickets = false;
 			
             document.getElementById("allLinkedTickets").addEventListener("click", function() {
-                showAllLinkedTickets = true;
+                var toAddtoDataset = new Set();
+                    
+                    console.log("showAllLinkedTickets");
+
+                    [...dataset].forEach(issue => {
+                        //if this is an issue from the original query (and thus has issuelinks field)
+                        if ("issuelinks" in issue) {  
+                            issue.issuelinks.forEach(linkedIssue => {
+                                if (!nodeSet.has(linkedIssue.key)) {
+                                linkedIssue['addedBy'] = issue.key;
+                                //linkedIssue['x'] = d.x;
+                                //linkedIssue['y'] = d.y;
+                                toAddtoDataset.add(linkedIssue);
+                                console.log(linkedIssue);
+                                nodeSet.add(linkedIssue.key);
+                                //add links to links
+                                links.add({
+                                'addedBy': issue.key,
+                                'source': issue.key,
+                                'target': linkedIssue.key,
+                                'type': linkedIssue.type
+                                });
+                                
+                            }
+
+                            });
+                        }    
+                    });
+                    
+                    [...toAddtoDataset].forEach(linkedIssue => {
+                        dataset.add(linkedIssue);
+                    })
+                    d3.selectAll('circle').classed('clicked', true);
                 update();
             });
             document.getElementById("queryTicketsOnly").addEventListener("click", function() {
@@ -106,46 +138,45 @@
             
             function update() {
                 //add all linked tickets to dataset if option is selected
-                if (showAllLinkedTickets) {
-                    var toAddtoDataset = new Set();
+                // if (showAllLinkedTickets) {
+                //     var toAddtoDataset = new Set();
                     
-                    console.log("showAllLinkedTickets");
+                //     console.log("showAllLinkedTickets");
 
-                    [...dataset].forEach(issue => {
-                        //if this is an issue from the original query (and thus has issuelinks field)
-                        if ("issuelinks" in issue) {  
-                            issue.issuelinks.forEach(linkedIssue => {
-                                if (!nodeSet.has(linkedIssue.key)) {
-                                linkedIssue['addedBy'] = issue.key;
-                                //linkedIssue['x'] = d.x;
-                                //linkedIssue['y'] = d.y;
-                                toAddtoDataset.add(linkedIssue);
-                                console.log(linkedIssue);
-                                nodeSet.add(linkedIssue.key);
-                                //add links to links
-                                links.add({
-                                'addedBy': issue.key,
-                                'source': issue.key,
-                                'target': linkedIssue.key,
-                                'type': linkedIssue.type
-                                });
+                //     [...dataset].forEach(issue => {
+                //         //if this is an issue from the original query (and thus has issuelinks field)
+                //         if ("issuelinks" in issue) {  
+                //             issue.issuelinks.forEach(linkedIssue => {
+                //                 if (!nodeSet.has(linkedIssue.key)) {
+                //                 linkedIssue['addedBy'] = issue.key;
+                //                 //linkedIssue['x'] = d.x;
+                //                 //linkedIssue['y'] = d.y;
+                //                 toAddtoDataset.add(linkedIssue);
+                //                 console.log(linkedIssue);
+                //                 nodeSet.add(linkedIssue.key);
+                //                 //add links to links
+                //                 links.add({
+                //                 'addedBy': issue.key,
+                //                 'source': issue.key,
+                //                 'target': linkedIssue.key,
+                //                 'type': linkedIssue.type
+                //                 });
                                 
-                            }
+                //             }
 
-                            });
-                        }    
-                    });
+                //             });
+                //         }    
+                //     });
                     
-                    [...toAddtoDataset].forEach(linkedIssue => {
-                        dataset.add(linkedIssue);
-                    })
-                    //dataset = new Set([...toAddtoDataset, ...dataset]);
-                    
-                }
-                else {
-                    console.log("queryTicketsOnly");
+                //     [...toAddtoDataset].forEach(linkedIssue => {
+                //         dataset.add(linkedIssue);
+                //     })
+                //     d3.selectAll('circle').classed('clicked', true);                    
+                // }
+                // else {
+                //     console.log("queryTicketsOnly");
 
-                }
+                // }
 
                 node = node.data([...dataset], d => d.key);
                 node.exit().remove();
@@ -203,7 +234,7 @@
                             issue['x'] = d.x;
                             issue['y'] = d.y;
                             dataset.add(issue);
-                            console.log(issue);
+                            //console.log(issue);
                             nodeSet.add(issue.key);
                             //add links to links
                             links.add({
@@ -225,7 +256,7 @@
 
                 }
                 else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-                    
+                    console.log("entering delete links control")
                     issuelinks.forEach(issue => {
                         if (!querySet.has(issue.key)) {
                             nodeSet.delete(issue.key);
@@ -237,7 +268,7 @@
                             // console.log(ticket);
                             dataset.delete(ticket);
                         }
-                        else if ('addedBy' in ticket) console.log(ticket);
+                        //else if ('addedBy' in ticket) console.log(ticket);
                     });
                    
                     links.forEach((link, k) => {
