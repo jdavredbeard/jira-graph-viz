@@ -21,6 +21,11 @@
         	</p>
 
         </form>
+        <br>
+        <form>
+            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
+            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
+        </form>
         <hr>
         {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -33,9 +38,16 @@
         {% endwith %}
 
         <script type="text/javascript">
-			var test = {{ dataset | tojson }}
-			console.log(test)
-
+            var showAllLinkedTickets = false;
+			
+            document.getElementById("allLinkedTickets").addEventListener("click", function() {
+                showAllLinkedTickets = true;
+                update();
+            });
+            document.getElementById("queryTicketsOnly").addEventListener("click", function() {
+                showAllLinkedTickets = false;
+                update();
+            });
         
             var dataset = new Set({{ dataset | tojson }});
             
@@ -93,6 +105,48 @@
 
             
             function update() {
+                //add all linked tickets to dataset if option is selected
+                if (showAllLinkedTickets) {
+                    var toAddtoDataset = new Set();
+                    
+                    console.log("showAllLinkedTickets");
+
+                    [...dataset].forEach(issue => {
+                        //if this is an issue from the original query (and thus has issuelinks field)
+                        if ("issuelinks" in issue) {  
+                            issue.issuelinks.forEach(linkedIssue => {
+                                if (!nodeSet.has(linkedIssue.key)) {
+                                linkedIssue['addedBy'] = issue.key;
+                                //linkedIssue['x'] = d.x;
+                                //linkedIssue['y'] = d.y;
+                                toAddtoDataset.add(linkedIssue);
+                                console.log(linkedIssue);
+                                nodeSet.add(linkedIssue.key);
+                                //add links to links
+                                links.add({
+                                'addedBy': issue.key,
+                                'source': issue.key,
+                                'target': linkedIssue.key,
+                                'type': linkedIssue.type
+                                });
+                                
+                            }
+
+                            });
+                        }    
+                    });
+                    
+                    [...toAddtoDataset].forEach(linkedIssue => {
+                        dataset.add(linkedIssue);
+                    })
+                    //dataset = new Set([...toAddtoDataset, ...dataset]);
+                    
+                }
+                else {
+                    console.log("queryTicketsOnly");
+
+                }
+
                 node = node.data([...dataset], d => d.key);
                 node.exit().remove();
                 node = node.enter()
@@ -162,6 +216,8 @@
                             issueAdded = true;
                         }
                     });                    
+                    
+
                     if (issueAdded) {
                         d.fx = d.x;
                         d.fy = d.y;
