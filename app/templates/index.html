@@ -22,11 +22,9 @@
 
         </form>
         <br>
-        <form>
-            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
-            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
-        </form>
         <hr>
+        
+        
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         <ul>
@@ -36,7 +34,11 @@
         </ul>
         {% endif %}
         {% endwith %}
-
+        <br>
+        <form>
+            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
+            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
+        </form>
         <script type="text/javascript">
 			
 
@@ -201,6 +203,7 @@
                 .attr('font-size', 15)
                 .attr('dx', 15)
                 .attr('dy', 4)
+                .style('cursor', 'pointer')
                 .merge(keyLink);
 
                 nestedKeyText = svg.selectAll('text');
