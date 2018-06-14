@@ -39,6 +39,9 @@
             <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
             <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
         </form>
+        
+            
+   
         <script type="text/javascript">
 			
 
@@ -51,6 +54,8 @@
             var querySet = new Set({{ query_list | tojson }});
 
             var nodeSet = new Set(querySet);
+
+            var epic_dataset = new Set({{ epic_dataset | tojson }});
             
 
             const width = window.innerWidth
@@ -64,7 +69,7 @@
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
                 keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
 
-
+        
 
             var linkForce = d3.forceLink()
                   .id(function (link) { return link.key })
@@ -173,7 +178,7 @@
                 node.exit().remove();
                 node = node.enter()
                 .append('circle')
-                .attr('r', 10)
+                .attr('r', getRadiusFromTicketType)
                 .attr('fill', getNodeColorFromStatus)
                 .attr('stroke', getStrokeColor)
                 .attr('stroke-width', 3)
@@ -201,18 +206,41 @@
                 .append('text')
                 .text(node => node.key)
                 .attr('font-size', 15)
-                .attr('dx', 15)
-                .attr('dy', 4)
+                .attr('dx', -20)
+                .attr('dy', getDyFromTicketType)
                 .style('cursor', 'pointer')
                 .merge(keyLink);
 
                 nestedKeyText = svg.selectAll('text');
 
-                simulation.nodes([...dataset]);
+                simulation.nodes([...dataset])
                 simulation.force('link').links([...links]);
                 simulation.alpha(.8).restart();                
             }
             
+            function getDyFromTicketType(d) {
+                dx = {
+                    "Epic": 55,
+                    "Story": 45,
+                    "Bug": 35,
+                    "QA Test Case": 25
+                }
+                if (d.issuetype in dx) return dx[d.issuetype];
+                else return 25;
+
+            }
+
+            function getRadiusFromTicketType(d) {
+                colors = {
+                    "Epic": 40,
+                    "Story": 30,
+                    "Bug": 20,
+                    "QA Test Case": 10
+                }
+                if (d.issuetype in colors) return colors[d.issuetype];
+                else return 10;
+
+            }
 
             function handleClick(d, i) {
                 //get links from d

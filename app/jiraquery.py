@@ -23,6 +23,7 @@ def get_jira_query_results(query_string):
 	querySet = set()
 	allLinks = []
 	linksInTickets = []
+	epic_set = set()
 
 
 	for issue in issues:
@@ -94,12 +95,17 @@ def get_jira_query_results(query_string):
 		}
 		if issue.fields.assignee is not None:
 			data['assignee'] = issue.fields.assignee.name
-		if issue.fields.customfield_10006:
-			for chunk in issue.fields.customfield_10006[0].split(','):
-				bite = chunk.split('=')
-				if  bite[0] == 'name':
-					data['sprint'] = bite[1]
-					break 
+		#customfield_10006 = sprint
+		if 'customfield_10006' in vars(issue.fields).keys():
+			if len(issue.fields.customfield_10006) > 0:			
+				for chunk in issue.fields.customfield_10006[0].split(','):
+					bite = chunk.split('=')
+					if  bite[0] == 'name':
+						data['sprint'] = bite[1]
+						break 
+		#customfield_10007 = epic key			
+		if issue.fields.customfield_10007 is not None:
+			epic_set.add(issue.fields.customfield_10007)	
 
 		tickets.append(data)
 		querySet.add(issue.key)
@@ -110,10 +116,13 @@ def get_jira_query_results(query_string):
 			linksInTickets.append(link)
 
 	query_list = list(querySet)
+	epic_list = list(epic_set)
+	epic_query_string = 'issuekey in (' + ','.join(epic_list) + ')' 
+
 
 
 	
-	return tickets, linksInTickets, query_list
+	return tickets, linksInTickets, query_list, epic_query_string
 	
 
 
