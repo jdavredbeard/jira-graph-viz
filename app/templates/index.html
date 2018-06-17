@@ -71,7 +71,7 @@
                 "Ready for Testing": "#007aff", //dark blue
                 "Ready for Acceptance": "#5ac8fa", //light blue
                 "Done": "#4cd964" // green
-              }
+            }
 
             const LINKCOLORS = {
                 "Relates": "green", 
@@ -82,7 +82,22 @@
                 "Issue Split": "#007aff", //dark blue
                 "Cloners": "#5ac8fa", //light blue
                 "subtask": "black"
-              }
+            }
+
+            const KEYTEXTOFFSET = {
+                    "Epic": 55,
+                    "Story": 45,
+                    "Bug": 35,
+                    "QA Test Case": 25
+            }
+
+            const NODERADIUS = {
+                    "Epic": 40,
+                    "Story": 30,
+                    "Bug": 20,
+                    "QA Test Case": 10
+                }
+
 
             var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
@@ -229,7 +244,7 @@
                 .text(node => node.key)
                 .attr('font-size', 15)
                 .attr('dx', -20)
-                .attr('dy', getDyFromTicketType)
+                .attr('dy', getKeyTextOffsetFromTicketType)
                 .style('cursor', 'pointer')
                 .merge(keyLink);
 
@@ -240,26 +255,14 @@
                 simulation.alpha(.8).restart();                
             }
             
-            function getDyFromTicketType(d) {
-                dx = {
-                    "Epic": 55,
-                    "Story": 45,
-                    "Bug": 35,
-                    "QA Test Case": 25
-                }
-                if (d.issuetype in dx) return dx[d.issuetype];
+            function getKeyTextOffsetFromTicketType(d) {
+                if (d.issuetype in KEYTEXTOFFSET) return KEYTEXTOFFSET[d.issuetype];
                 else return 25;
 
             }
 
             function getRadiusFromTicketType(d) {
-                colors = {
-                    "Epic": 40,
-                    "Story": 30,
-                    "Bug": 20,
-                    "QA Test Case": 10
-                }
-                if (d.issuetype in colors) return colors[d.issuetype];
+                if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype];
                 else return 10;
 
             }
