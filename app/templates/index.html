@@ -58,8 +58,8 @@
 
             
 
-            const height = 400 + querySet.size * 15;
-            const width = height;
+            const height = 1600 + querySet.size * 10;
+            const width = 1600 + querySet.size * 10;
 
             const baseUrl = 'https://elsevier-healthsolutions.atlassian.net/browse/';
 
@@ -81,10 +81,11 @@
                 "Related": "green", 
                 "Dependency": "orange", 
                 "Blocks": "red",
-                "Bonfire Testing": "purple",
+                "Bonfire Testing": "purple", //discovered while testing
                 "Issue Split": "#007aff", //dark blue
                 "Cloners": "#5ac8fa", //light blue
-                "subtask": "black"
+                "subtask": "black",
+                "parent": "black"
             }
 
             const NODERADIUS = {

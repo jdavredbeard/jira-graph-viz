@@ -26,6 +26,7 @@ def get_jira_query_results(query_string):
 		allLinks = []
 		linksInTickets = []
 		epic_set = set()
+		parent = None
 
 
 		for issue in issues:
@@ -49,7 +50,6 @@ def get_jira_query_results(query_string):
 						data['issuetype'] = link.inwardIssue.fields.issuetype.name
 						data['priority'] = link.inwardIssue.fields.priority.name
 
-						#d3 links array
 						allLinks.append({
 						'source': issue.key,
 						'target': link.inwardIssue.key,
@@ -72,6 +72,23 @@ def get_jira_query_results(query_string):
 						})
 					#add data to array to be held within issue data	
 					link_data.append(data)
+
+			if 'parent' in vars(issue.fields).keys():
+				parent = issue.fields.parent
+				data = {
+					'type': 'parent',
+					'key': parent.key,
+					'summary': parent.fields.summary,
+					'status': parent.fields.status.name,
+					'priority': parent.fields.priority.name
+				}
+				link_data.append(data)
+				allLinks.append({
+					'source': issue.key,
+					'target': parent.key,
+					'type': 'parent'
+					})
+
 					
 			for subtask in subtasks:
 				if subtask is not None:
@@ -83,6 +100,11 @@ def get_jira_query_results(query_string):
 						'priority': subtask.fields.priority.name
 					}
 					link_data.append(data)
+					allLinks.append({
+						'source': issue.key,
+						'target': subtask.key,
+						'type': 'subtask'
+						})
 
 
 
@@ -115,6 +137,7 @@ def get_jira_query_results(query_string):
 		for link in allLinks:
 			if link['source'] in querySet and link['target'] in querySet:
 				link['addedBy'] = 'query'
+				linksInTickets.append(link)
 
 		query_list = list(querySet)
 		epic_list = list(epic_set)
