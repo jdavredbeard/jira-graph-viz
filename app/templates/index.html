@@ -86,25 +86,20 @@
                 "subtask": "black"
             }
 
-            const KEYTEXTOFFSET = {
-                    "Epic": 55,
-                    "Story": 45,
-                    "Technical Story": 45,
-                    "Bug": 35,
-                    "QA Test Case": 25
-            }
-
             const NODERADIUS = {
                     "Epic": 40,
-                    "Story": 30,
-                    "Technical Story": 30,
-                    "Bug": 20,
-                    "QA Test Case": 10
+                    "Story": 25,
+                    "Technical Story": 25,
+                    "Design": 25,
+                    "Bug": 15,
+                    "Sub-task": 10,
+                    "QA Task": 10,
+                    "QA Test Case": 5
                 }
 
-            var legendSVG = d3.select('body').append('svg').attr('width', width).attr('height', 250)
-                            .append('circle').attr('cx', 20).attr('cy', 20).attr('r', 10).attr('fill', STATUSCOLORS["To Do"])
-                            .append('text').attr('font-size', 15).attr('dx',40).attr('dy', 20).text('To Do')
+            // var legendSVG = d3.select('body').append('svg').attr('width', width).attr('height', 250)
+            //                 .append('circle').attr('cx', 20).attr('cy', 20).attr('r', 10).attr('fill', STATUSCOLORS["To Do"])
+            //                 .append('text').attr('font-size', 15).attr('dx',40).attr('dy', 20).text('To Do')
 
             var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
@@ -251,8 +246,10 @@
                 .attr('target', '_blank')
                 .append('text')
                 .text(node => node.key)
-                .attr('font-size', 15)
-                .attr('dx', -20)
+                .attr("font-family", "Helvetica, sans-serif")
+                .attr('font-size', 12)
+                .attr('font-weight', 'bold')
+                .attr('dx', getDxOffsetFromKeyLength)
                 .attr('dy', getKeyTextOffsetFromTicketType)
                 .style('cursor', 'pointer')
                 .merge(keyLink);
@@ -263,9 +260,13 @@
                 simulation.force('link').links([...links]);
                 simulation.alpha(.8).restart();                
             }
+
+            function getDxOffsetFromKeyLength(d) {
+                return 0 - (d.key.length * 3)
+            }
             
             function getKeyTextOffsetFromTicketType(d) {
-                if (d.issuetype in KEYTEXTOFFSET) return KEYTEXTOFFSET[d.issuetype];
+                if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype] + 15;
                 else return 25;
 
             }
