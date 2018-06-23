@@ -19,7 +19,7 @@ def get_jira_query_results(query_string):
 
 	try:
 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
-		issues = authed_jira.search_issues(query_string, fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006')
+		issues = searchJira(query_string, 100, authed_jira)
 
 		tickets = []
 		querySet = set()
@@ -128,4 +128,22 @@ def get_jira_query_results(query_string):
 
 	except JIRAError as e:
 		return [], [], [], "", e
+
+def searchJira(query, split, authed_jira): 
+        big_list = []
+        count = 1
+        second_list = [1]
+        first_list = authed_jira.search_issues(query,
+            fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+            startAt=0,
+            maxResults=split)
+        big_list.extend(first_list)
+        while (len(second_list) != 0):
+            second_list = authed_jira.search_issues(query,
+            	fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+                startAt=(count * split),
+                maxResults=((count + 1) * split))
+            big_list.extend(second_list)
+            count = count + 1
+        return big_list 
 
