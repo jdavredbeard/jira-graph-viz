@@ -22,7 +22,6 @@
 
         </form>
         <br>
-        <hr>
         
         
         {% with messages = get_flashed_messages() %}
@@ -35,6 +34,8 @@
         {% endif %}
         {% endwith %}
         <br>
+        <hr>
+
         <form>
             <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
             <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
@@ -57,8 +58,9 @@
 
             
 
-            const width = window.innerWidth;
-            const height = querySet.size * 25;
+            const height = 400 + querySet.size * 15;
+            const width = height;
+
             const baseUrl = 'https://elsevier-healthsolutions.atlassian.net/browse/';
 
             const STATUSCOLORS = {
@@ -69,8 +71,9 @@
                 "Blocked": "red",
                 "Testing Failed": "purple",
                 "Ready for Testing": "#007aff", //dark blue
-                "Ready for Acceptance": "#5ac8fa", //light blue
-                "Done": "#4cd964" // green
+                "Ready for Acceptance": "#009F6B", //dark green
+                "Done": "#4cd964", // green
+                "Testing Passed": "#4cd964", // green
             }
 
             const LINKCOLORS = {
@@ -84,27 +87,27 @@
                 "subtask": "black"
             }
 
-            const KEYTEXTOFFSET = {
-                    "Epic": 55,
-                    "Story": 45,
-                    "Bug": 35,
-                    "QA Test Case": 25
-            }
-
             const NODERADIUS = {
                     "Epic": 40,
-                    "Story": 30,
-                    "Bug": 20,
-                    "QA Test Case": 10
+                    "Story": 25,
+                    "Technical Story": 25,
+                    "Design": 25,
+                    "Bug": 15,
+                    "Sub-task": 10,
+                    "QA Task": 10,
+                    "QA Test Case": 5
                 }
 
+            // var legendSVG = d3.select('body').append('svg').attr('width', width).attr('height', 250)
+            //                 .append('circle').attr('cx', 20).attr('cy', 20).attr('r', 10).attr('fill', STATUSCOLORS["To Do"])
+            //                 .append('text').attr('font-size', 15).attr('dx',40).attr('dy', 20).text('To Do')
 
             var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
                 keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
 
-            var legendSVG = d3.select('body').append('svg').attr('width', width).attr('height', 250)
+
                             
         
 
@@ -230,9 +233,10 @@
                 nodeLink.exit().remove();
                 nodeLink = nodeLink.enter()
                 .append("line")
-                .attr("stroke-width", 2)
+                .attr("stroke-width", 3)
                 .attr("stroke", getLineColorFromLinkType)
-                .attr("stroke-dasharray", [5,6])
+                .attr("stroke-dasharray", [5,4])
+                .attr("opacity", .8)
                 .merge(nodeLink);
 
                 keyLink = keyLink.data([...dataset], d => d.key);
@@ -240,10 +244,13 @@
                 keyLink = keyLink.enter()
                 .append('a')
                 .attr('href', function(d) { return baseUrl + d.key})
+                .attr('target', '_blank')
                 .append('text')
                 .text(node => node.key)
-                .attr('font-size', 15)
-                .attr('dx', -20)
+                .attr("font-family", "Helvetica, sans-serif")
+                .attr('font-size', 12)
+                .attr('font-weight', 'bold')
+                .attr('dx', getDxOffsetFromKeyLength)
                 .attr('dy', getKeyTextOffsetFromTicketType)
                 .style('cursor', 'pointer')
                 .merge(keyLink);
@@ -254,9 +261,13 @@
                 simulation.force('link').links([...links]);
                 simulation.alpha(.8).restart();                
             }
+
+            function getDxOffsetFromKeyLength(d) {
+                return 0 - (d.key.length * 3)
+            }
             
             function getKeyTextOffsetFromTicketType(d) {
-                if (d.issuetype in KEYTEXTOFFSET) return KEYTEXTOFFSET[d.issuetype];
+                if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype] + 15;
                 else return 25;
 
             }
