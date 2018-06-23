@@ -106,7 +106,9 @@ def get_jira_query_results(query_string):
 						'type': 'subtask'
 						})
 
-
+			#customfield_10007 = epic key			
+			if issue.fields.customfield_10007 is not None:
+				epic_set.add(issue.fields.customfield_10007)
 
 			data = {
 				'key': issue.key,
@@ -127,9 +129,7 @@ def get_jira_query_results(query_string):
 						if  bite[0] == 'name':
 							data['sprint'] = bite[1]
 							break 
-			#customfield_10007 = epic key			
-			if issue.fields.customfield_10007 is not None:
-				epic_set.add(issue.fields.customfield_10007)	
+				
 
 			tickets.append(data)
 			querySet.add(issue.key)

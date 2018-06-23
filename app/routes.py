@@ -19,6 +19,7 @@ def index():
   if form.validate_on_submit():
   	flash('Query submitted: {}'.format(form.query.data))
   	dataset, links, query_list, epic_query_string, error = get_jira_query_results(form.query.data)
+  	print(epic_query_string)
   	# #epic_dataset, epic_links, epic_query_list, epic_query_string = get_jira_query_results(epic_query_string)
   	# for issue in epic_dataset:
   	# 	dataset.append(issue)
