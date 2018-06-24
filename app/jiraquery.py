@@ -19,7 +19,7 @@ def get_jira_query_results(query_string):
 		query_set = set()
 		all_links = []
 		links_in_tickets = []
-		epic_set = set()
+		linked_epic_set = set()
 		parent = None
 
 
@@ -102,7 +102,7 @@ def get_jira_query_results(query_string):
 
 			#customfield_10007 = epic key			
 			if issue.fields.customfield_10007 is not None:
-				epic_set.add(issue.fields.customfield_10007)
+				linked_epic_set.add(issue.fields.customfield_10007)
 				data = {
 					'issuetype': 'Epic',
 					'key': issue.fields.customfield_10007,
@@ -143,10 +143,10 @@ def get_jira_query_results(query_string):
 				links_in_tickets.append(link)
 
 		query_list = list(query_set)
-		epic_list = list(epic_set)
-		epic_query_string = 'issuekey in (' + ','.join(epic_list) + ')' 
+		linked_epic_list = list(linked_epic_set)
+		linked_epic_query_string = 'issuekey in (' + ','.join(linked_epic_list) + ')' 
 
-		return tickets, links_in_tickets, query_list, epic_query_string, None
+		return tickets, links_in_tickets, query_list, linked_epic_query_string, None
 	
 	except JIRAError as e:
 		return [], [], [], "", e
@@ -177,11 +177,11 @@ def get_credentials():
 
 	return Config.get('Auth', 'username'), Config.get('Auth', 'password'), Config.get('Basic', 'url')
 
-# def get_epic_query_results(epic_query_string):
+# def get_epic_query_results(linked_epic_query_string):
 # 	username, password, url = get_credentials()
 
 # 	try:
 # 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
-# 		issues = search_jira(epic_query_string, 100, authed_jira)
+# 		issues = search_jira(linked_epic_query_string, 100, authed_jira)
 
 
