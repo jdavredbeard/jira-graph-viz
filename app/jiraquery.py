@@ -20,6 +20,7 @@ def get_jira_query_results(query_string):
 		all_links = []
 		links_in_tickets = []
 		linked_epic_set = set()
+		query_epic_set = set()
 		parent = None
 
 
@@ -134,6 +135,10 @@ def get_jira_query_results(query_string):
 							data['sprint'] = bite[1]
 							break 			
 
+			#if this issue is an epic
+			if issue.fields.issuetype.name == 'Epic':
+				query_epic_set.add(issue.key)
+
 			tickets.append(data)
 			query_set.add(issue.key)
 
@@ -146,10 +151,10 @@ def get_jira_query_results(query_string):
 		linked_epic_list = list(linked_epic_set)
 		linked_epic_query_string = 'issuekey in (' + ','.join(linked_epic_list) + ')' 
 
-		return tickets, links_in_tickets, query_list, linked_epic_query_string, None
+		return tickets, links_in_tickets, query_list, linked_epic_query_string, None, query_epic_set
 	
 	except JIRAError as e:
-		return [], [], [], "", e
+		return [], [], [], "", e, None
 
 def search_jira(query, split, authed_jira): 
         big_list = []
