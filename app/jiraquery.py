@@ -8,24 +8,20 @@ import jira
 from jira.exceptions import JIRAError
 
 def get_jira_query_results(query_string):
-	SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-
-	Config = configparser.ConfigParser()
-	Config.read(SCRIPT_DIR + '/' + 'config.ini')
-
-	url = Config.get('Basic', 'url')
-	username = Config.get('Auth', 'username')
-	password = Config.get('Auth', 'password')
+	
+	username, password, url = get_credentials()
 
 	try:
 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
-		issues = searchJira(query_string, 100, authed_jira)
+		issues = search_jira(query_string, 100, authed_jira)
 
 		tickets = []
-		querySet = set()
-		allLinks = []
-		linksInTickets = []
-		epic_set = set()
+		query_set = set()
+		all_links = []
+		links_in_tickets = []
+		linked_epic_set = set()
+		query_epic_set = set()
+		parent = None
 
 
 		for issue in issues:
@@ -49,8 +45,7 @@ def get_jira_query_results(query_string):
 						data['issuetype'] = link.inwardIssue.fields.issuetype.name
 						data['priority'] = link.inwardIssue.fields.priority.name
 
-						#d3 links array
-						allLinks.append({
+						all_links.append({
 						'source': issue.key,
 						'target': link.inwardIssue.key,
 						'type': link.type.name,
@@ -64,7 +59,7 @@ def get_jira_query_results(query_string):
 						data['issuetype'] = link.outwardIssue.fields.issuetype.name
 						data['priority'] = link.outwardIssue.fields.priority.name
 
-						allLinks.append({
+						all_links.append({
 						'source': issue.key,
 						'target': link.outwardIssue.key,
 						'type': link.type.name,
@@ -72,6 +67,23 @@ def get_jira_query_results(query_string):
 						})
 					#add data to array to be held within issue data	
 					link_data.append(data)
+
+			if 'parent' in vars(issue.fields).keys():
+				parent = issue.fields.parent
+				data = {
+					'type': 'parent',
+					'key': parent.key,
+					'summary': parent.fields.summary,
+					'status': parent.fields.status.name,
+					'priority': parent.fields.priority.name
+				}
+				link_data.append(data)
+				all_links.append({
+					'source': issue.key,
+					'target': parent.key,
+					'type': 'parent'
+					})
+
 					
 			for subtask in subtasks:
 				if subtask is not None:
@@ -83,8 +95,25 @@ def get_jira_query_results(query_string):
 						'priority': subtask.fields.priority.name
 					}
 					link_data.append(data)
+					all_links.append({
+						'source': issue.key,
+						'target': subtask.key,
+						'type': 'subtask'
+						})
 
-
+			#customfield_10007 = epic key			
+			if issue.fields.customfield_10007 is not None:
+				linked_epic_set.add(issue.fields.customfield_10007)
+				data = {
+					'issuetype': 'Epic',
+					'key': issue.fields.customfield_10007,
+				}
+				link_data.append(data)
+				all_links.append({
+					'source': issue.key,
+					'target': issue.fields.customfield_10007,
+					'type': 'epic parent'
+					})
 
 			data = {
 				'key': issue.key,
@@ -104,32 +133,30 @@ def get_jira_query_results(query_string):
 						bite = chunk.split('=')
 						if  bite[0] == 'name':
 							data['sprint'] = bite[1]
-							break 
-			#customfield_10007 = epic key			
-			if issue.fields.customfield_10007 is not None:
-				epic_set.add(issue.fields.customfield_10007)	
+							break 			
+
+			#if this issue is an epic
+			if issue.fields.issuetype.name == 'Epic':
+				query_epic_set.add(issue.key)
 
 			tickets.append(data)
-			querySet.add(issue.key)
+			query_set.add(issue.key)
 
-		for link in allLinks:
-			if link['source'] in querySet and link['target'] in querySet:
+		for link in all_links:
+			if link['source'] in query_set and link['target'] in query_set:
 				link['addedBy'] = 'query'
+				links_in_tickets.append(link)
 
-		query_list = list(querySet)
-		epic_list = list(epic_set)
-		epic_query_string = 'issuekey in (' + ','.join(epic_list) + ')' 
+		query_list = list(query_set)
+		linked_epic_list = list(linked_epic_set)
+		linked_epic_query_string = 'issuekey in (' + ','.join(linked_epic_list) + ')' 
 
-
-
-		
-		return tickets, linksInTickets, query_list, epic_query_string, None
+		return tickets, links_in_tickets, query_list, linked_epic_query_string, None, query_epic_set
 	
-
 	except JIRAError as e:
-		return [], [], [], "", e
+		return [], [], [], "", e, None
 
-def searchJira(query, split, authed_jira): 
+def search_jira(query, split, authed_jira): 
         big_list = []
         count = 1
         second_list = [1]
@@ -146,4 +173,20 @@ def searchJira(query, split, authed_jira):
             big_list.extend(second_list)
             count = count + 1
         return big_list 
+
+def get_credentials():
+	SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
+
+	Config = configparser.ConfigParser()
+	Config.read(SCRIPT_DIR + '/' + 'config.ini')
+
+	return Config.get('Auth', 'username'), Config.get('Auth', 'password'), Config.get('Basic', 'url')
+
+# def get_epic_query_results(linked_epic_query_string):
+# 	username, password, url = get_credentials()
+
+# 	try:
+# 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
+# 		issues = search_jira(linked_epic_query_string, 100, authed_jira)
+
 
