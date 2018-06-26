@@ -48,4 +48,7 @@ def index():
 							issue['issuelinks'].append(epic_link_issue)
 	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
 
+@app.route('/health', methods=['GET'])
+def health():
+	return 'JIRA-GRAPH-VIZ Online' 
 
