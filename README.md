@@ -1,17 +1,10 @@
-colors = {
-                "To Do": "#8e8e93", //grey
-                "Icebox": "aqua",
-                "In Progress": "#ffcc00", //yellow
-                "Code Review": "orange",
-                "Blocked": "red",
-                "Testing Failed": "purple",
-                "Ready for Testing": "#007aff", //dark blue
-                "Ready for Acceptance": "#5ac8fa", //light blue
-                "Done": "#4cd964" // green
-              }# jira-graph-viz
 This project is a webapp that provides a graph visualization of jira queries using d3 with a python/flask backend used to host the page, contact the jira api, and parse the data. It is still under construction!
 
-To run:
+Visit the app at http://jira-graph-viz-automation.apps.els-ols.com/
+
+To run it locally:
+
+Make sure you have python and pip installed.
 
 After cloning the repo:
 - `pip install -r requirements.txt`
