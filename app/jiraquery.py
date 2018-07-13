@@ -8,7 +8,7 @@ import jira
 from jira.exceptions import JIRAError
 import threading
 import logging
-
+import math
 
 
 
@@ -199,7 +199,9 @@ def search_jira_threaded(query, authed_jira):
 	full_query_results = []
 	threads = []
 
-	for i in range(15):
+	num_threads = calculate_num_threads_from_total_results(query, authed_jira)
+
+	for i in range(num_threads):
 		start_at = 100 * i
 		max_results = 100 * (i + 1)
 		t = threading.Thread(target=threaded_search_job, args=(query, authed_jira, start_at, max_results, full_query_results))
@@ -215,6 +217,14 @@ def search_jira_threaded(query, authed_jira):
 	logging.debug('Returning full_query_results')
 	return full_query_results
 
+def calculate_num_threads_from_total_results(query, authed_jira):
+	total_check_query = authed_jira.search_issues(query, fields='total')
+	total_results = total_check_query.total
+	num_threads = math.ceil(total_results / 100)
+
+	print('total = {}'.format(total_results))
+	print('num_threads = {}'.format(num_threads))
+	return num_threads
 
 def threaded_search_job(query, authed_jira, start_at, max_results, full_query_results):
 	logging.debug('Starting')
