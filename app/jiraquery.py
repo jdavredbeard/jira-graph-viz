@@ -6,14 +6,23 @@ import os
 import json
 import jira
 from jira.exceptions import JIRAError
+import threading
+import logging
+import math
 
-def get_jira_query_results(query_string):
+
+
+def get_jira_query_results(query_string, threading, authed_jira):
+
+	logging.basicConfig(level=logging.DEBUG,
+                    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
+                    )
 	
-	username, password, url = get_credentials()
+	#username, password, url = get_credentials()
 
 	try:
-		authed_jira = jira.JIRA(url, basic_auth=(username, password))
-		issues = search_jira(query_string, 100, authed_jira)
+		#authed_jira = jira.JIRA(url, basic_auth=(username, password))
+		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
 
 		tickets = []
 		query_set = set()
@@ -157,22 +166,22 @@ def get_jira_query_results(query_string):
 		return [], [], [], "", e, None
 
 def search_jira(query, split, authed_jira): 
-        big_list = []
-        count = 1
-        second_list = [1]
-        first_list = authed_jira.search_issues(query,
-            fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
-            startAt=0,
-            maxResults=split)
-        big_list.extend(first_list)
-        while (len(second_list) != 0):
-            second_list = authed_jira.search_issues(query,
-            	fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
-                startAt=(count * split),
-                maxResults=((count + 1) * split))
-            big_list.extend(second_list)
-            count = count + 1
-        return big_list 
+    big_list = []
+    count = 1
+    second_list = [1]
+    first_list = authed_jira.search_issues(query,
+        fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+        startAt=0,
+        maxResults=split)
+    big_list.extend(first_list)
+    while (len(second_list) != 0):
+        second_list = authed_jira.search_issues(query,
+        	fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+            startAt=(count * split),
+            maxResults=((count + 1) * split))
+        big_list.extend(second_list)
+        count = count + 1
+    return big_list 
 
 def get_credentials():
 	SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
@@ -182,11 +191,46 @@ def get_credentials():
 
 	return Config.get('Auth', 'username'), Config.get('Auth', 'password'), Config.get('Basic', 'url')
 
-# def get_epic_query_results(linked_epic_query_string):
-# 	username, password, url = get_credentials()
+def get_jira_auth():
+	username, password, url = get_credentials()
+	return jira.JIRA(url, basic_auth=(username, password))
 
-# 	try:
-# 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
-# 		issues = search_jira(linked_epic_query_string, 100, authed_jira)
+def search_jira_threaded(query, authed_jira):
+	full_query_results = []
+	threads = []
 
+	num_threads = calculate_num_threads_from_total_results(query, authed_jira)
 
+	for i in range(num_threads):
+		start_at = 100 * i
+		max_results = 100 * (i + 1)
+		t = threading.Thread(target=threaded_search_job, args=(query, authed_jira, start_at, max_results, full_query_results))
+		threads.append(t)
+		t.start()
+		
+
+	for thread in threads:
+		if thread.is_alive():
+			logging.debug('{} still alive'.format(thread.getName()))
+			thread.join()
+			logging.debug('{} joined {}'.format(thread.getName(), threading.currentThread().getName()))
+	logging.debug('Returning full_query_results')
+	return full_query_results
+
+def calculate_num_threads_from_total_results(query, authed_jira):
+	total_check_query = authed_jira.search_issues(query, fields='total')
+	total_results = total_check_query.total
+	num_threads = math.ceil(total_results / 100)
+
+	print('total = {}'.format(total_results))
+	print('num_threads = {}'.format(num_threads))
+	return num_threads
+
+def threaded_search_job(query, authed_jira, start_at, max_results, full_query_results):
+	logging.debug('Starting')
+	threaded_search_job_query_results = authed_jira.search_issues(query,
+            	fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+                startAt=start_at,
+                maxResults=max_results)
+	full_query_results.extend(threaded_search_job_query_results)
+	logging.debug('Done')
