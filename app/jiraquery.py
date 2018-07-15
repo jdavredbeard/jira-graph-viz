@@ -199,14 +199,23 @@ def search_jira_threaded(query, authed_jira):
 	full_query_results = []
 	threads = []
 
-	num_threads = calculate_num_threads_from_total_results(query, authed_jira)
+	num_threads_needed = calculate_num_threads_from_total_results(query, authed_jira)
 
-	for i in range(num_threads):
-		start_at = 100 * i
-		max_results = 100 * (i + 1)
-		t = threading.Thread(target=threaded_search_job, args=(query, authed_jira, start_at, max_results, full_query_results))
-		threads.append(t)
-		t.start()
+	max_threads = min(num_threads_needed, 5)
+
+	logging.debug('max_threads = {}'.format(max_threads))
+
+	num_started_threads = 0
+
+	while num_started_threads <= num_threads_needed:
+		while threading.active_count() <= max_threads:
+			logging.debug('threading.active_count() = {}'.format(threading.active_count()))
+			start_at = 100 * num_started_threads
+			max_results = 100 * (num_started_threads + 1)
+			t = threading.Thread(target=threaded_search_job, args=(query, authed_jira, start_at, max_results, full_query_results))
+			threads.append(t)
+			t.start()
+			num_started_threads += 1
 		
 
 	for thread in threads:
@@ -220,11 +229,11 @@ def search_jira_threaded(query, authed_jira):
 def calculate_num_threads_from_total_results(query, authed_jira):
 	total_check_query = authed_jira.search_issues(query, fields='total')
 	total_results = total_check_query.total
-	num_threads = math.ceil(total_results / 100)
+	num_threads_needed = math.ceil(total_results / 100)
 
-	print('total = {}'.format(total_results))
-	print('num_threads = {}'.format(num_threads))
-	return num_threads
+	logging.debug('total = {}'.format(total_results))
+	logging.debug('num_threads_needed = {}'.format(num_threads_needed))
+	return num_threads_needed
 
 def threaded_search_job(query, authed_jira, start_at, max_results, full_query_results):
 	logging.debug('Starting')
