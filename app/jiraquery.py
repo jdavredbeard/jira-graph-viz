@@ -205,10 +205,14 @@ def search_jira_threaded(query, authed_jira):
 
 	logging.debug('max_threads = {}'.format(max_threads))
 
+	gunicorn_threads = int(os.environ['GUNICORN_THREADS'])
+
+
+
 	num_started_threads = 0
 
 	while num_started_threads <= num_threads_needed:
-		while threading.active_count() <= max_threads:
+		while threading.active_count() <= max_threads + gunicorn_threads:
 			logging.debug('threading.active_count() = {}'.format(threading.active_count()))
 			start_at = 100 * num_started_threads
 			max_results = 100 * (num_started_threads + 1)
