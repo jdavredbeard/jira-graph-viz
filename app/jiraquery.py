@@ -202,7 +202,7 @@ def search_jira_threaded(query, authed_jira):
 
 	num_threads_needed = calculate_num_threads_from_total_results(query, authed_jira)
 
-	max_threads = min(num_threads_needed, 5)
+	max_threads = min(num_threads_needed, max_query_threads)
 
 	logging.debug('max_threads = {}'.format(max_threads))
 
