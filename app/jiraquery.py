@@ -198,6 +198,7 @@ def get_jira_auth():
 def search_jira_threaded(query, authed_jira):
 	full_query_results = []
 	threads = []
+	max_query_threads = int(os.environ['MAX_QUERY_THREADS'])
 
 	num_threads_needed = calculate_num_threads_from_total_results(query, authed_jira)
 
