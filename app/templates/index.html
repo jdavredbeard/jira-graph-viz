@@ -8,6 +8,20 @@
         <style type="text/css">      
         </style>
     </head>
+    <style>
+        div.tooltip {   
+            position: absolute;         
+            text-align: left;         
+            /*width: 400px;                    */
+            height: 120px;                   
+            padding: 2px;               
+            font: 20px sans-serif;      
+            background: lightsteelblue; 
+            border: 0px;        
+            border-radius: 8px;         
+            pointer-events: none;           
+        }
+    </style>
     <body>
     	<h2>jira-graph-viz</h2>
         <form action="" method="post">
@@ -105,6 +119,11 @@
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
                 keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
+
+            // Define the div for the tooltip
+            var div = d3.select("body").append("div")   
+                .attr("class", "tooltip")               
+                .style("opacity", 0);
 
             var linkForce = d3.forceLink()
                   .id(function (link) { return link.key })
@@ -354,11 +373,25 @@
                 
             function handleMouseOver(d, i) {
                 d3.select(this).attr('fill', 'orange');
+                div.transition()        
+                    .duration(200)      
+                    .style("opacity", .9);      
+                div .html("<b>Summary: </b>" + d.summary + "<br/>"  + 
+                        "<b>Priority: </b>" + d.priority + "<br/>" + 
+                        "<b>Assignee: </b>" + d.assignee + "<br/>" + 
+                        "<b>Issuetype: </b>" + d.issuetype + "<br/>" + 
+                        "<b>Status: </b>" + d.status)  
+                    .style("left", (d3.event.pageX) + "px")     
+                    .style("top", (d3.event.pageY - 28) + "px")
+                    .style("width", (d.summary.length * 10) + 90 + "px");    
             }
             
 
             function handleMouseOut(d, i) {
                 d3.select(this).attr('fill', getNodeColorFromStatus);
+                div.transition()        
+                    .duration(500)      
+                    .style("opacity", 0);
             }
 
             function getStrokeColor(d) {
