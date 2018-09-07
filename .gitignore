@@ -1,6 +1,7 @@
 venv/**
 __pycache__/**
 .DS_Store
+.idea/
 app/.DS_Store
 app/__pycache__/**
 app/__pycache__/__init__.cpython-36.pyc
