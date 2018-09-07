@@ -84,4 +84,7 @@ def submit_query(query):
 		flash('Issues in query results: {}'.format(len(dataset)))
 		url = request.url_root + "query?query=" + str(query)
 		flash('Share this jira-graph-viz: {}'.format(url))
-	return render_template('index.html', form=QueryForm(), dataset=dataset, links=links, query_list=query_list)
+
+		form = QueryForm()
+		form.query.data = query
+	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
