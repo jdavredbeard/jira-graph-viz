@@ -18,16 +18,17 @@ def index():
 		flash('Query submitted: {}'.format(form.query.data))
 		return submit_query(form.query.data)
 	else:
-		dataset = {}
-		links = {}
-		query_list = []
-		return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
+		return displayHome()
 
 @app.route('/query', methods=['GET','POST'], )
 def query():
+
 	query = request.args.get('query')
-	flash('Query submitted: {}'.format(query))
-	return submit_query(query)
+	if query:
+		flash('Query submitted: {}'.format(query))
+		return submit_query(query)
+	else:
+		return index()
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -88,3 +89,9 @@ def submit_query(query):
 		form = QueryForm()
 		form.query.data = query
 	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
+
+def displayHome():
+	dataset = {}
+	links = {}
+	query_list = []
+	return render_template('index.html', form=QueryForm(), dataset=dataset, links=links, query_list=query_list)

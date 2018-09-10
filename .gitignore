@@ -12,3 +12,5 @@ app/__pycache__/__init__.cpython-36.pyc
 app/__pycache__/forms.cpython-36.pyc
 app/__pycache__/jiraquery.cpython-36.pyc
 app/__pycache__/routes.cpython-36.pyc
+*.pyc
+app/*.pyc
