@@ -87,6 +87,25 @@
                 "Complete": "#4cd964", //green
             }
 
+            const RADIALFORCERADIUS = {
+                "Draft": 0, 
+                "To Do": height * 0.05,
+                "Icebox": height * 0.3,
+                "In Progress": height * 0.1, 
+                "Code Review": height * 0.1, 
+                "Blocked": 0,
+                "Testing Failed": 0,
+                "Ready for Testing": height * 0.15, 
+                "Ready for Acceptance": height * 0.2, 
+                "Ready for Production": height * 0.2, 
+                "Ready for Release": height * 0.2, 
+                "Done": height * 0.25, // green
+                "Testing Passed": height * 0.25, // green
+                "Released": height * 0.25, //green
+                "Completed": height * 0.25, //green
+                "Complete": height   * 0.25, //green
+            }
+
             const LINKCOLORS = {
                 "Relates": "green", 
                 "Related": "green", 
@@ -131,11 +150,12 @@
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
-                  .force('charge', d3.forceManyBody().strength(-200)) 
+                  .force('charge', d3.forceManyBody().strength(-1000)) 
                   .force('center', d3.forceCenter(width / 2, height / 2))
                   .force('x', d3.forceX())
                   .force('y', d3.forceY())
                   .force('collision', d3.forceCollide().radius(d => Math.min(NODERADIUS[d.issuetype] * 6, 45)))
+                  .force('radial', d3.forceRadial(getRadialForceRadiusFromTicketStatus, width / 2, height / 2).strength(.5))
                   .on('tick', ticked);
 
             var dragDrop = d3.drag().on('start', function (node) {
@@ -291,6 +311,11 @@
                 if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype];
                 else return 10;
 
+            }
+
+            function getRadialForceRadiusFromTicketStatus(d) {
+                if (d.status in RADIALFORCERADIUS) return RADIALFORCERADIUS[d.status];
+                else return 0;
             }
 
             function handleClick(d, i) {
