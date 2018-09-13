@@ -8,27 +8,22 @@ from app.jiraquery import get_jira_auth
 import threading
 import logging
 import jira
-
+import urllib
 
 @app.route('/', methods=['GET','POST'])
 @app.route('/index', methods=['GET','POST'])
 def index():
 	form = QueryForm()
+	query = request.args.get('query')
+
 	if form.validate_on_submit():
 		flash('Query submitted: {}'.format(form.query.data))
 		return submit_query(form.query.data)
-	else:
-		return displayHome()
-
-@app.route('/query', methods=['GET','POST'], )
-def query():
-
-	query = request.args.get('query')
-	if query:
+	elif query:
 		flash('Query submitted: {}'.format(query))
 		return submit_query(query)
 	else:
-		return index()
+		return displayHome()
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -83,7 +78,7 @@ def submit_query(query):
 					for epic_link_issue in epic_link_hash[issue['key']]:
 						issue['issuelinks'].append(epic_link_issue)
 		flash('Issues in query results: {}'.format(len(dataset)))
-		url = request.url_root + "query?query=" + str(query)
+		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
 		flash('Share this jira-graph-viz: {}'.format(url))
 
 		form = QueryForm()
