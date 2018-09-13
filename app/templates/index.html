@@ -12,9 +12,8 @@
         div.tooltip {   
             position: absolute;         
             text-align: left;         
-            /*width: 400px;                    */
-            height: 120px;                   
-            padding: 2px;               
+            width: 400px;                                  
+            padding: 4px;               
             font: 20px sans-serif;      
             background: lightsteelblue; 
             border: 0px;        
@@ -407,8 +406,7 @@
                         "<b>Issuetype: </b>" + d.issuetype + "<br/>" + 
                         "<b>Status: </b>" + d.status)  
                     .style("left", (d3.event.pageX) + "px")     
-                    .style("top", (d3.event.pageY - 28) + "px")
-                    .style("width", (d.summary.length * 10) + 90 + "px");    
+                    .style("top", (d3.event.pageY - 28) + "px");   
             }
             
 
