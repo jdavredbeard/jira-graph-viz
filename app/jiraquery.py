@@ -136,7 +136,7 @@ def get_jira_query_results(query_string, threading, authed_jira):
 			if issue.fields.assignee is not None:
 				data['assignee'] = issue.fields.assignee.name
 			#customfield_10006 = sprint
-			if 'customfield_10006' in vars(issue.fields).keys():
+			if issue.fields.customfield_10006 is not None:
 				if len(issue.fields.customfield_10006) > 0:			
 					for chunk in issue.fields.customfield_10006[0].split(','):
 						bite = chunk.split('=')
