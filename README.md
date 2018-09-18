@@ -69,6 +69,5 @@ const NODERADIUS = {
 
 To Do:
 
-- modal on mouseover of node - show summary, project, assignee, status, sprint, epic
 - add legend for colors and shapes
 - add support for showing more levels of linked tickets
