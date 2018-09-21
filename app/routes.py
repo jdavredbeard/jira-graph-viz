@@ -42,6 +42,7 @@ def submit_query(query):
 	epic_link_hash = {}
 	authed_jira = get_jira_auth()
 
+	#get data for initial query
 	dataset, links, query_list, linked_epic_query_string, error, query_epic_set = get_jira_query_results(
 		query_string=query, threading=True, authed_jira=authed_jira)
 
@@ -50,6 +51,7 @@ def submit_query(query):
 	else:
 		if linked_epic_query_string != 'issuekey in ()':
 			flash('Linked Epic query submitted: {}'.format(linked_epic_query_string))
+			#get data for epics that are 'linked' to tickets in initial query and add them as links
 			linked_epic_dataset, _, _, _, _, _ = get_jira_query_results(query_string=linked_epic_query_string,
 																		threading=True, authed_jira=authed_jira)
 			for epic in linked_epic_dataset:
@@ -61,6 +63,7 @@ def submit_query(query):
 						linked_issue['summary'] = epic_hash[linked_issue['key']]['summary']
 						linked_issue['priority'] = epic_hash[linked_issue['key']]['priority']
 						linked_issue['status'] = epic_hash[linked_issue['key']]['status']
+		#if epics are part of the initial dataset, find all linked tickets to those epics
 		if query_epic_set:
 			query_epic_tuple = tuple(query_epic_set)
 			epic_link_dataset, _, _, _, _, _ = get_jira_query_results(
@@ -81,8 +84,8 @@ def submit_query(query):
 		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
 		flash('Share this jira-graph-viz: {}'.format(url))
 
-		form = QueryForm()
-		form.query.data = query
+	form = QueryForm()
+	form.query.data = query
 	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
 
 def displayHome():
