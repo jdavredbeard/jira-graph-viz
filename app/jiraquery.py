@@ -18,10 +18,10 @@ def get_jira_query_results(query_string, threading, authed_jira):
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
 	
-	#username, password, url = get_credentials()
+	username, password, url = get_credentials()
 
 	try:
-		#authed_jira = jira.JIRA(url, basic_auth=(username, password))
+		authed_jira = jira.JIRA(url, basic_auth=(username, password))
 		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
 
 		tickets = []
