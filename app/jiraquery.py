@@ -17,154 +17,168 @@ def get_jira_query_results(query_string, threading, authed_jira):
 	logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
-	
+
 	username, password, url = get_credentials()
 
 	try:
 		authed_jira = jira.JIRA(url, basic_auth=(username, password))
 		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
+		return parseDataFromJiraApiResponse(issues)
+	except JIRAError as e:
+		return [], [], [], "", None, e
 
-		tickets = []
-		query_set = set()
-		all_links = []
-		links_in_tickets = []
-		linked_epic_set = set()
-		query_epic_set = set()
-		parent = None
+def parseDataFromJiraApiResponse(issues):
+	tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parseIssues(issues)	
+	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set, None
 
+def parseIssues(issues):
+	linked_epic_set = set()
+	query_epic_set = set()
+	query_set = set()
+	tickets = []
+	all_links = []
 
-		for issue in issues:
-			links = issue.fields.issuelinks
-			subtasks = issue.fields.subtasks
-			link_data = []
+	for issue in issues:
+		links = issue.fields.issuelinks
+		subtasks = issue.fields.subtasks
+		link_data = []
 
-			for link in links:
-				if link is not None:
+		addIssueLinksToLinkData(issue, links, link_data, all_links)
+		addParentToLinkData(issue, link_data, all_links)
+		addSubtasksToLinkData(issue, subtasks, link_data, all_links)			
+		addEpicToLinkData(issue, linked_epic_set, link_data, all_links)
+		tickets.append(createParsedIssue(issue, link_data))
+		if issue.fields.issuetype.name == 'Epic':
+			query_epic_set.add(issue.key)
+		query_set.add(issue.key)
+	links_in_tickets = addLinksInQuerySetToLinksInTickets(all_links, query_set)
+	query_list = list(query_set)
+	linked_epic_query_string = createLinkedEpicQueryString(linked_epic_set)
+	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set  
 
-					data = {
-						'type': link.type.name,
-						'inwardtype': link.type.inward,
-						'outwardtype': link.type.outward,
-					}
-					if 'inwardIssue' in vars(link).keys():
-						data['direction'] = 'inward'
-						data['key'] = link.inwardIssue.key
-						data['summary'] = link.inwardIssue.fields.summary
-						data['status'] = link.inwardIssue.fields.status.name
-						data['issuetype'] = link.inwardIssue.fields.issuetype.name
-						data['priority'] = link.inwardIssue.fields.priority.name
+def createLinkedEpicQueryString(linked_epic_set):
+	linked_epic_list = list(linked_epic_set)
+	return 'issuekey in (' + ','.join(linked_epic_list) + ')'
 
-						all_links.append({
-						'source': issue.key,
-						'target': link.inwardIssue.key,
-						'type': link.type.name,
-						'direction': 'inward'
-						})
-					elif 'outwardIssue' in vars(link).keys():
-						data['direction'] = 'outward'
-						data['key'] = link.outwardIssue.key
-						data['summary'] = link.outwardIssue.fields.summary
-						data['status'] = link.outwardIssue.fields.status.name
-						data['issuetype'] = link.outwardIssue.fields.issuetype.name
-						data['priority'] = link.outwardIssue.fields.priority.name
+def addLinksInQuerySetToLinksInTickets(all_links, query_set):
+	links_in_tickets = []
+	for link in all_links:
+		if link['source'] in query_set and link['target'] in query_set:
+			link['addedBy'] = 'query'
+			links_in_tickets.append(link)
+	return links_in_tickets
+			
+def createParsedIssue(issue, link_data):
+	parsedIssue = {
+		'key': issue.key,
+		'summary': issue.fields.summary,
+		'status': issue.fields.status.name,
+		'issuetype': issue.fields.issuetype.name,
+		'priority': issue.fields.priority.name,
+		'project': issue.fields.project.name,
+		'issuelinks': link_data
+	}
+	if issue.fields.assignee is not None:
+		parsedIssue['assignee'] = issue.fields.assignee.name
+		
+	#customfield_10006 = sprint
+	if issue.fields.customfield_10006 is not None:
+		if len(issue.fields.customfield_10006) > 0:			
+			for chunk in issue.fields.customfield_10006[0].split(','):
+				bite = chunk.split('=')
+				if  bite[0] == 'name':
+					parsedIssue['sprint'] = bite[1]
+					break 			
+	return parsedIssue
 
-						all_links.append({
-						'source': issue.key,
-						'target': link.outwardIssue.key,
-						'type': link.type.name,
-						'direction': 'outward'
-						})
-					#add data to array to be held within issue data	
-					link_data.append(data)
+def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
+	#customfield_10007 = epic key			
+	if issue.fields.customfield_10007 is not None:
+		linked_epic_set.add(issue.fields.customfield_10007)
+		data = {
+			'issuetype': 'Epic',
+			'key': issue.fields.customfield_10007,
+		}
+		link_data.append(data)
+		all_links.append({
+			'source': issue.key,
+			'target': issue.fields.customfield_10007,
+			'type': 'epic parent'
+			})
 
-			if 'parent' in vars(issue.fields).keys():
-				parent = issue.fields.parent
-				data = {
-					'type': 'parent',
-					'key': parent.key,
-					'summary': parent.fields.summary,
-					'status': parent.fields.status.name,
-					'priority': parent.fields.priority.name
-				}
-				link_data.append(data)
-				all_links.append({
-					'source': issue.key,
-					'target': parent.key,
-					'type': 'parent'
-					})
+def addSubtasksToLinkData(issue, subtasks, link_data, all_links):			
+	for subtask in subtasks:
+		if subtask is not None:
+			data = {
+				'type': 'subtask',
+				'key': subtask.key,
+				'summary': subtask.fields.summary,
+				'status': subtask.fields.status.name,
+				'priority': subtask.fields.priority.name
+			}
+			link_data.append(data)
+			all_links.append({
+				'source': issue.key,
+				'target': subtask.key,
+				'type': 'subtask'
+				})
 
-					
-			for subtask in subtasks:
-				if subtask is not None:
-					data = {
-						'type': 'subtask',
-						'key': subtask.key,
-						'summary': subtask.fields.summary,
-						'status': subtask.fields.status.name,
-						'priority': subtask.fields.priority.name
-					}
-					link_data.append(data)
-					all_links.append({
-						'source': issue.key,
-						'target': subtask.key,
-						'type': 'subtask'
-						})
+def addParentToLinkData(issue, link_data, all_links):
+	if 'parent' in vars(issue.fields).keys():
+		parent = issue.fields.parent
+		data = {
+			'type': 'parent',
+			'key': parent.key,
+			'summary': parent.fields.summary,
+			'status': parent.fields.status.name,
+			'priority': parent.fields.priority.name
+		}
+		link_data.append(data)
+		all_links.append({
+			'source': issue.key,
+			'target': parent.key,
+			'type': 'parent'
+			})
 
-			#customfield_10007 = epic key			
-			if issue.fields.customfield_10007 is not None:
-				linked_epic_set.add(issue.fields.customfield_10007)
-				data = {
-					'issuetype': 'Epic',
-					'key': issue.fields.customfield_10007,
-				}
-				link_data.append(data)
-				all_links.append({
-					'source': issue.key,
-					'target': issue.fields.customfield_10007,
-					'type': 'epic parent'
-					})
+def addIssueLinksToLinkData(issue, links, link_data, all_links):
+	for link in links:
+		if link is not None:
 
 			data = {
-				'key': issue.key,
-				'summary': issue.fields.summary,
-				'status': issue.fields.status.name,
-				'issuetype': issue.fields.issuetype.name,
-				'priority': issue.fields.priority.name,
-				'project': issue.fields.project.name,
-				'issuelinks': link_data
+				'type': link.type.name,
+				'inwardtype': link.type.inward,
+				'outwardtype': link.type.outward,
 			}
-			if issue.fields.assignee is not None:
-				data['assignee'] = issue.fields.assignee.name
-				
-			#customfield_10006 = sprint
-			if issue.fields.customfield_10006 is not None:
-				if len(issue.fields.customfield_10006) > 0:			
-					for chunk in issue.fields.customfield_10006[0].split(','):
-						bite = chunk.split('=')
-						if  bite[0] == 'name':
-							data['sprint'] = bite[1]
-							break 			
+			if 'inwardIssue' in vars(link).keys():
+				data['direction'] = 'inward'
+				data['key'] = link.inwardIssue.key
+				data['summary'] = link.inwardIssue.fields.summary
+				data['status'] = link.inwardIssue.fields.status.name
+				data['issuetype'] = link.inwardIssue.fields.issuetype.name
+				data['priority'] = link.inwardIssue.fields.priority.name
 
-			#if this issue is an epic
-			if issue.fields.issuetype.name == 'Epic':
-				query_epic_set.add(issue.key)
+				all_links.append({
+				'source': issue.key,
+				'target': link.inwardIssue.key,
+				'type': link.type.name,
+				'direction': 'inward'
+				})
+			elif 'outwardIssue' in vars(link).keys():
+				data['direction'] = 'outward'
+				data['key'] = link.outwardIssue.key
+				data['summary'] = link.outwardIssue.fields.summary
+				data['status'] = link.outwardIssue.fields.status.name
+				data['issuetype'] = link.outwardIssue.fields.issuetype.name
+				data['priority'] = link.outwardIssue.fields.priority.name
 
-			tickets.append(data)
-			query_set.add(issue.key)
-
-		for link in all_links:
-			if link['source'] in query_set and link['target'] in query_set:
-				link['addedBy'] = 'query'
-				links_in_tickets.append(link)
-
-		query_list = list(query_set)
-		linked_epic_list = list(linked_epic_set)
-		linked_epic_query_string = 'issuekey in (' + ','.join(linked_epic_list) + ')' 
-
-		return tickets, links_in_tickets, query_list, linked_epic_query_string, None, query_epic_set
-	
-	except JIRAError as e:
-		return [], [], [], "", e, None
+				all_links.append({
+				'source': issue.key,
+				'target': link.outwardIssue.key,
+				'type': link.type.name,
+				'direction': 'outward'
+				})
+			#add data to array to be held within issue data	
+			link_data.append(data)
 
 def search_jira(query, split, authed_jira): 
     big_list = []
@@ -209,8 +223,6 @@ def search_jira_threaded(query, authed_jira):
 
 	gunicorn_threads = int(os.environ.get('GUNICORN_THREADS', 5))
 
-
-
 	num_started_threads = 0
 
 	while num_started_threads <= num_threads_needed:
@@ -223,7 +235,6 @@ def search_jira_threaded(query, authed_jira):
 			t.start()
 			num_started_threads += 1
 		
-
 	for thread in threads:
 		if thread.is_alive():
 			logging.debug('{} still alive'.format(thread.getName()))

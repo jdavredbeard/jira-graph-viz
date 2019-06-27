@@ -1,0 +1,29 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>jira-graph-viz</title>
+    <script type="text/javascript" src="{{ url_for('static', filename= 'd3.min.js' )}}"></script>
+    <style type="text/css">
+        div.tooltip {
+            position: absolute;
+            text-align: left;
+            width: 400px;
+            padding: 4px;
+            font: 20px sans-serif;
+            background: lightsteelblue;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+<h2>caliper-queries</h2>
+<p>{{ query }}</p>
+
+
+
+</body>
+</html>
