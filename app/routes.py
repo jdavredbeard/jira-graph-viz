@@ -78,8 +78,10 @@ def addLinkedEpicsToDatasetLinks(dataset, linked_epic_query_string, authed_jira)
 		#get data for epics that are 'linked' to tickets in initial query and add them as links
 		linked_epic_dataset, _, _, _, _, _ = get_jira_query_results(query_string=linked_epic_query_string,
 																	threading=True, authed_jira=authed_jira)
+
 		for epic in linked_epic_dataset:
-			epic_hash[epic['key']] = epic
+			if 'key' in epic:
+				epic_hash[epic['key']] = epic
 		for issue in dataset:
 			for linked_issue in issue['issuelinks']:
 				if linked_issue['key'] in epic_hash and 'issuetype' in linked_issue and linked_issue[

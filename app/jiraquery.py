@@ -69,17 +69,23 @@ def addLinksInQuerySetToLinksInTickets(all_links, query_set):
 	return links_in_tickets
 			
 def createParsedIssue(issue, link_data):
-	parsedIssue = {
-		'key': issue.key,
-		'summary': issue.fields.summary,
-		'status': issue.fields.status.name,
-		'issuetype': issue.fields.issuetype.name,
-		'priority': issue.fields.priority.name,
-		'project': issue.fields.project.name,
-		'issuelinks': link_data
-	}
+	parsedIssue = {}
+	if issue.key is not None:
+		parsedIssue['key'] = issue.key
+	if issue.fields.summary is not None:
+		parsedIssue['summary'] = issue.fields.summary
+	if issue.fields.status is not None:
+		parsedIssue['status'] = issue.fields.status.name
+	if issue.fields.issuetype is not None:
+		parsedIssue['issuetype'] = issue.fields.issuetype.name
+	if issue.fields.priority is not None:
+		parsedIssue['priority'] = issue.fields.priority.name
+	if issue.fields.project is not None:
+		parsedIssue['project'] = issue.fields.project.name
 	if issue.fields.assignee is not None:
 		parsedIssue['assignee'] = issue.fields.assignee.name
+
+	parsedIssue['issuelinks'] = link_data
 		
 	#customfield_10006 = sprint
 	if issue.fields.customfield_10006 is not None:
