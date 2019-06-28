@@ -98,6 +98,7 @@ def displayHome():
 
 def displayCaliperQueries():
 	query = connectToRedshift()
+	print(query)
 	return render_template('caliperQueries.html', query=query)
 
 def connectToRedshift():
@@ -109,11 +110,70 @@ def connectToRedshift():
 									+ redshift_user
 									+':'
 									+ redshift_pwd
-									+'@localhost:54000/qa')
+									+'@localhost:55000/analytics')
 
 
 	return pd.read_sql_query('''
-	SELECT t.* FROM public.annotation_event_dimension t
-    LIMIT 10
+	SELECT assignable_month, SUM(lesson_assigned) as lessons_assigned,
+       SUM(naq_assigned) as non_adaptive_quizzes_assigned,
+       SUM(skill_assigned) as skills_assigned,
+       SUM(simulation_assigned) as simulations_assigned
+
+FROM
+    (SELECT course_section_id,  assignable_id, assignable_type, assignable_due_date,
+
+            CASE WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'January' then '01. January'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'February' then '02. February'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'March' then '03. March'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'April' then '04. April'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'May' then '05. May'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'June' then '06. June'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'July' then '07. July'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'August' then '08. August'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'September' then '09. September'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'October' then '10. October'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'November' then '11. November'
+                 WHEN (to_char(to_timestamp (date_part('month',  assignable_due_date)::text, 'MM'), 'Month')) = 'December' then '12. December'
+                 ELSE 'WTF' END  as assignable_month,
+
+
+            SUM(case when (assignable_type = 'simulation') then 1 else 0 end) as simulation_assigned,
+
+            SUM(case when (assignable_type = 'lesson') then 1 else 0 end) as lesson_assigned,
+
+            SUM(case when (assignable_type = 'exam') then 1 else 0 end) as naq_assigned,
+
+            SUM(case when (assignable_type = 'skill') then 1 else 0 end) as skill_assigned,
+
+            SUM(case when (assignable_type = 'MASTERY') then 1 else 0 end) as mastery_assigned,
+
+            SUM(case when (assignable_type = 'QUIZ_BY_QUESTION') then 1 else 0 end) as qbq_assigned,
+
+            SUM(case when (assignable_type = 'STANDARD') then 1 else 0 end) as custom_assigned
+
+     FROM
+         (SELECT *,
+                 row_number() over(partition by assignable_id, course_section_id order by a.assignment_created_ts desc) as latest_event
+          FROM
+              (SELECT  a.created_ts as assignment_created_ts,
+                       a.course_section_id,
+                       a.assignable_id,
+                       a.assignable_type ,
+                       CAST(due_dt at time zone 'utc' at time zone 'est5edt' as TIMESTAMP) as assignable_due_date
+               FROM            assignable_event_dimension a
+               WHERE  a.assignable_type in ('lesson', 'skill','simulation','exam')
+                 and education_app_id in ('skills-viewer', 'content-viewer')
+
+                 and due_dt at time zone 'utc' at time zone 'est5edt' BETWEEN '2019-01-01' and '2019-06-27'
+
+               GROUP BY a.created_ts,
+                        a.course_section_id,
+                        a.assignable_id,
+                        a.assignable_type,
+                        a.due_dt ) a )a
+     WHERE latest_event = 1
+     GROUP BY course_section_id,assignable_id, assignable_type, assignable_due_date)a
+GROUP BY assignable_month
+ORDER BY assignable_month
 	
-	''',redshift_engine)
+	''',redshift_engine).to_csv(index=False)
