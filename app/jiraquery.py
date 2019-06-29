@@ -67,9 +67,18 @@ def addLinksInQuerySetToLinksInTickets(all_links, query_set):
 			link['addedBy'] = 'query'
 			links_in_tickets.append(link)
 	return links_in_tickets
+
+def assignFieldsFromIssueIfPresent(sourceIssue, targetObject, fields):
+	for field in fields:
+		if sourceIssue.fields[field.sourceName] is not None:
+			targetObject[field.targetName] = sourceIssue.fields[field.sourceName]
 			
 def createParsedIssue(issue, link_data):
 	parsedIssue = {}
+	# assignFieldsFromIssueIfPresent(issue, parsedIssue,
+	# 							   fields= [{"sourceName": "key", "targetName": "key"},
+	# 										{"sourceName": "summary", "targetName": "summary"},
+	# 										])
 	if issue.key is not None:
 		parsedIssue['key'] = issue.key
 	if issue.fields.summary is not None:
@@ -78,7 +87,7 @@ def createParsedIssue(issue, link_data):
 		parsedIssue['status'] = issue.fields.status.name
 	if issue.fields.issuetype is not None:
 		parsedIssue['issuetype'] = issue.fields.issuetype.name
-	if issue.fields.priority is not None:
+	if "priority" in vars(issue.fields) and issue.fields.priority is not None:
 		parsedIssue['priority'] = issue.fields.priority.name
 	if issue.fields.project is not None:
 		parsedIssue['project'] = issue.fields.project.name
@@ -88,7 +97,7 @@ def createParsedIssue(issue, link_data):
 	parsedIssue['issuelinks'] = link_data
 		
 	#customfield_10006 = sprint
-	if issue.fields.customfield_10006 is not None:
+	if "customfield_10006" in vars(issue.fields) and issue.fields.customfield_10006 is not None:
 		if len(issue.fields.customfield_10006) > 0:			
 			for chunk in issue.fields.customfield_10006[0].split(','):
 				bite = chunk.split('=')
@@ -99,7 +108,7 @@ def createParsedIssue(issue, link_data):
 
 def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
 	#customfield_10007 = epic key			
-	if issue.fields.customfield_10007 is not None:
+	if "customfield_10007" in vars(issue.fields) and issue.fields.customfield_10007 is not None:
 		linked_epic_set.add(issue.fields.customfield_10007)
 		data = {
 			'issuetype': 'Epic',
@@ -161,7 +170,8 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 				data['summary'] = link.inwardIssue.fields.summary
 				data['status'] = link.inwardIssue.fields.status.name
 				data['issuetype'] = link.inwardIssue.fields.issuetype.name
-				data['priority'] = link.inwardIssue.fields.priority.name
+				if "priority" in vars(link.inwardIssue.fields) and link.inwardIssue.fields.priority is not None:
+					data['priority'] = link.inwardIssue.fields.priority.name
 
 				all_links.append({
 				'source': issue.key,
@@ -175,7 +185,8 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 				data['summary'] = link.outwardIssue.fields.summary
 				data['status'] = link.outwardIssue.fields.status.name
 				data['issuetype'] = link.outwardIssue.fields.issuetype.name
-				data['priority'] = link.outwardIssue.fields.priority.name
+				if "priority" in vars(link.outwardIssue.fields) and link.outwardIssue.fields.priority is not None:
+					data['priority'] = link.outwardIssue.fields.priority.name
 
 				all_links.append({
 				'source': issue.key,
