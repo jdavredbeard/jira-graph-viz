@@ -1,13 +1,11 @@
 from flask import render_template, flash
 from flask import request
-from flask import url_for
 from app import app
 from app.forms import QueryForm
 from app.jiraquery import get_jira_query_results
 from app.jiraquery import get_jira_auth
-import threading
-import logging
-import jira
+from app.jiraquery import get_jira_auth_no_creds
+from app.jiraquery import get_jira_auth_no_server_info
 import urllib
 from sqlalchemy import create_engine
 import pandas as pd
@@ -36,7 +34,9 @@ def caliper_queries():
 	return displayCaliperQueries()
 
 def submit_query(query):
-	authed_jira = get_jira_auth()
+	# authed_jira = get_jira_auth()
+	# authed_jira = get_jira_auth_no_server_info()
+	authed_jira = get_jira_auth_no_creds()
 	dataset, links, query_list, linked_epic_query_string, query_epic_set, error = get_jira_query_results(
 		query_string=query, threading=True, authed_jira=authed_jira)
 	if error is not None:

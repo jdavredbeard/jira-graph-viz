@@ -21,7 +21,7 @@ def get_jira_query_results(query_string, threading, authed_jira):
 	username, password, url = get_credentials()
 
 	try:
-		authed_jira = jira.JIRA(url, basic_auth=(username, password))
+		# authed_jira = jira.JIRA(url, basic_auth=(username, password))
 		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
 		return parseDataFromJiraApiResponse(issues)
 	except JIRAError as e:
@@ -215,6 +215,14 @@ def get_credentials():
 def get_jira_auth():
 	username, password, url = get_credentials()
 	return jira.JIRA(url, basic_auth=(username, password))
+
+def get_jira_auth_no_creds():
+	_, _, url = get_credentials()
+	return jira.JIRA(url, options={"verify":False})
+
+def get_jira_auth_no_server_info():
+	username, password, url = get_credentials()
+	return jira.JIRA(url, basic_auth=(username, password), get_server_info=False)
 
 def search_jira_threaded(query, authed_jira):
 	full_query_results = []
