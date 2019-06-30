@@ -5,7 +5,7 @@
         <meta charset="utf-8">
         <title>jira-graph-viz</title>
         <script src="https://d3js.org/d3.v5.min.js"></script>
-        <style type="text/css">      
+        <style type="text/css">
         </style>
     </head>
     <style>
@@ -53,8 +53,6 @@
             <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
             <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
         </form>
-        
-        
    
         <script type="text/javascript">
 			
@@ -88,18 +86,18 @@
             }
 
             const RADIALFORCERADIUS = {
-                "Draft": 0, 
+                "Draft": 0,
                 "To Do": height * 0.05,
                 "Icebox": height * 0.3,
-                "In Progress": height * 0.1, 
-                "Code Review": height * 0.1, 
+                "In Progress": height * 0.1,
+                "Code Review": height * 0.1,
                 "Blocked": 0,
                 "Testing Failed": 0,
-                "Ready for Testing": height * 0.15, 
-                "Ready for Acceptance": height * 0.2, 
-                "Ready for Production": height * 0.2, 
+                "Ready for Testing": height * 0.15,
+                "Ready for Acceptance": height * 0.2,
+                "Ready for Production": height * 0.2,
                 "Ready for Release": height * 0.2,
-                "Ready to Deploy": height * 0.2, 
+                "Ready to Deploy": height * 0.2,
                 "Done": height * 0.25, // green
                 "Testing Passed": height * 0.25, // green
                 "Released": height * 0.25, //green
@@ -108,9 +106,9 @@
             }
 
             const LINKCOLORS = {
-                "Relates": "green", 
-                "Related": "green", 
-                "Dependency": "orange", 
+                "Relates": "green",
+                "Related": "green",
+                "Dependency": "orange",
                 "Blocks": "red",
                 "Bonfire Testing": "purple", //discovered while testing
                 "Issue Split": "#007aff", //dark blue
