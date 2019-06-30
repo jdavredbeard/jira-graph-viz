@@ -5,22 +5,20 @@
         <meta charset="utf-8">
         <title>jira-graph-viz</title>
         <script src="https://d3js.org/d3.v5.min.js"></script>
-        <style type="text/css">
+        <style>
+            div.tooltip {
+                position: absolute;
+                text-align: left;
+                width: 400px;
+                padding: 4px;
+                font: 20px sans-serif;
+                background: lightsteelblue;
+                border: 0px;
+                border-radius: 8px;
+                pointer-events: none;
+            }
         </style>
     </head>
-    <style>
-        div.tooltip {   
-            position: absolute;         
-            text-align: left;         
-            width: 400px;                                  
-            padding: 4px;               
-            font: 20px sans-serif;      
-            background: lightsteelblue; 
-            border: 0px;        
-            border-radius: 8px;         
-            pointer-events: none;           
-        }
-    </style>
     <body>
     	<h2>jira-graph-viz</h2>
         <form action="" method="post">
@@ -55,16 +53,30 @@
         </form>
    
         <script type="text/javascript">
+
+            // Data from backend call to Jira api is inserted here through templating - do not modify.
 			
             var dataset = new Set({{ dataset | tojson }});
             var links = new Set({{ links | tojson }});
             var querySet = new Set({{ query_list | tojson }});
             var nodeSet = new Set(querySet);
 
+            // .....
+            // BEGIN CONSTANTS SECTION
+            // .....
+
+            // Feel free to add to or modify these to suite your needs.
+            // If a node has property data that is not represented in these constants objects,
+            // they will be given default values.
+
+            // Defines the size of the svg that displays the visualization.
             const height = 1600 + querySet.size * 5;
             const width = 1600 + querySet.size * 5;
+
+            // Defines the base url for the links to the tickets represented by the nodes.
             const baseUrl = 'https://elsevier-healthsolutions.atlassian.net/browse/';
 
+            // Defines the colors of the nodes based on their status
             const STATUSCOLORS = {
                 "Draft": "#E8E8E8", //light grey
                 "To Do": "#8e8e93", //grey
@@ -84,6 +96,9 @@
                 "Completed": "#4cd964", //green
                 "Complete": "#4cd964", //green
             }
+
+            // Defines the radius of the ring to which nodes with a given status are attracted in
+            // the force simulation.
 
             const RADIALFORCERADIUS = {
                 "Draft": 0,
@@ -105,17 +120,22 @@
                 "Complete": height   * 0.25, //green
             }
 
+            // Defines the color of the lines between nodes, representing the type of link or relationship
+            // between them.
+
             const LINKCOLORS = {
                 "Relates": "green",
                 "Related": "green",
                 "Dependency": "orange",
                 "Blocks": "red",
-                "Bonfire Testing": "purple", //discovered while testing
-                "Issue Split": "#007aff", //dark blue
-                "Cloners": "#5ac8fa", //light blue
+                "Bonfire Testing": "purple", // bonfire testing = discovered while testing
+                "Issue Split": "#007aff", // dark blue
+                "Cloners": "#5ac8fa", // light blue
                 "subtask": "black",
                 "parent": "black"
             }
+
+            // Defines the radius of the node representing tickets given a certain ticket type.
 
             const NODERADIUS = {
                     "Epic": 40,
@@ -130,6 +150,10 @@
                     "Task": 25
                 }
 
+            // .....
+            // END CONSTANTS SECTION
+            // .....
+
             var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
@@ -142,7 +166,6 @@
 
             var linkForce = d3.forceLink()
                   .id(function (link) { return link.key })
-                  //.strength(.25);
 
             var simulation = d3.forceSimulation()
                   .force('link', linkForce)
@@ -183,19 +206,15 @@
                                 if (!nodeSet.has(linkedIssue.key)) {
                                     linkedIssue['addedBy'] = issue.key;
                                     toAddtoDataset.add(linkedIssue);
-                                    //console.log(linkedIssue);
                                     nodeSet.add(linkedIssue.key);
                                 }
-                                //add links to links
+
                                 links.add({
                                 'addedBy': issue.key,
                                 'source': issue.key,
                                 'target': linkedIssue.key,
                                 'type': linkedIssue.type
                                 });
-                                
-                                
-
                             });
                         }    
                     });
@@ -222,7 +241,6 @@
                 
                 dataset.forEach((ticket, j) => {
                     if ('addedBy' in ticket) {
-                        // console.log(ticket);
                         dataset.delete(ticket);
                     }
                 });
@@ -258,7 +276,6 @@
                 .on('mouseover', handleMouseOver)
                 .on('mouseout', handleMouseOut)
                 .on('click', handleClick);
-                
 
                 nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
                 nodeLink.exit().remove();
@@ -315,31 +332,25 @@
             }
 
             function handleClick(d, i) {
-                //get links from d
                 var issuelinks = d.issuelinks;
                 var issueAdded = false;
-                //if node has not already been clicked
-                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {             
+                if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
                     issuelinks.forEach(issue => {
                         if (!nodeSet.has(issue.key)) {
                             issue['addedBy'] = d.key;
                             issue['x'] = d.x;
                             issue['y'] = d.y;
                             dataset.add(issue);
-                            //console.log(issue);
                             nodeSet.add(issue.key);
-                            //add links to links
                             links.add({
                             'addedBy': d.key,
                             'source': d.key,
                             'target': issue.key,
                             'type': issue.type
                             });
-                            //set bool
                             issueAdded = true;
                         }
-                    });                    
-                    
+                    });
 
                     if (issueAdded) {
                         d.fx = d.x;
@@ -363,10 +374,8 @@
                     
                     dataset.forEach((ticket, j) => {
                         if ('addedBy' in ticket && ticket.addedBy === d.key) {
-                            // console.log(ticket);
                             dataset.delete(ticket);
                         }
-                        //else if ('addedBy' in ticket) console.log(ticket);
                     });
                    
                     links.forEach((link, k) => {
@@ -375,8 +384,6 @@
                         }
                     });
                     
-
-                    //unfix clicked node
                     d.fx = null;
                     d.fy = null;
 
@@ -387,7 +394,7 @@
                     console.log("dataset size: " + dataset.size);
                     console.log("nodeSet: " + [...nodeSet].toString());
                 }
-                //toggle class = 'clicked'
+
                 d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
                 update();
             }
@@ -405,7 +412,6 @@
                     .style("left", (d3.event.pageX) + "px")     
                     .style("top", (d3.event.pageY - 28) + "px");   
             }
-            
 
             function handleMouseOut(d, i) {
                 d3.select(this).attr('fill', getNodeColorFromStatus);
@@ -442,8 +448,6 @@
                     .attr('x2', function (link) { return link.target.x })
                     .attr('y2', function (link) { return link.target.y });
             }
-
-
         </script>
     </body>
 </html>
