@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 import configparser
-import jira
 import os
-import json
 import jira
 from jira.exceptions import JIRAError
 import threading
@@ -17,11 +15,7 @@ def get_jira_query_results(query_string, threading, authed_jira):
 	logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-10s) %(message)s',
                     )
-
-	username, password, url = get_credentials()
-
 	try:
-		# authed_jira = jira.JIRA(url, basic_auth=(username, password))
 		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
 		return parseDataFromJiraApiResponse(issues)
 	except JIRAError as e:
@@ -39,6 +33,10 @@ def parseIssues(issues):
 	all_links = []
 
 	for issue in issues:
+		parsedIssue = createParsedIssue(issue)
+
+		parsedIssue = addSprintToParsedIssue(issue, parsedIssue)
+
 		links = issue.fields.issuelinks
 		subtasks = issue.fields.subtasks
 		link_data = []
@@ -47,14 +45,60 @@ def parseIssues(issues):
 		addParentToLinkData(issue, link_data, all_links)
 		addSubtasksToLinkData(issue, subtasks, link_data, all_links)			
 		addEpicToLinkData(issue, linked_epic_set, link_data, all_links)
-		tickets.append(createParsedIssue(issue, link_data))
+
+		parsedIssue = addLinksToParsedIssue(parsedIssue, link_data)
+
+		tickets.append(parsedIssue)
+
 		if issue.fields.issuetype.name == 'Epic':
 			query_epic_set.add(issue.key)
+
 		query_set.add(issue.key)
+
 	links_in_tickets = addLinksInQuerySetToLinksInTickets(all_links, query_set)
 	query_list = list(query_set)
 	linked_epic_query_string = createLinkedEpicQueryString(linked_epic_set)
-	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set  
+	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set
+
+def createParsedIssue(issue):
+	return parseFieldsFromIssue(issue,
+								fields = [{"sourceName": ("key",), "targetName": "key"},
+										 {"sourceName": ("raw", "fields", "summary"), "targetName": "summary"},
+										 {"sourceName": ("raw", "fields", "status","name"), "targetName": "status"},
+										 {"sourceName": ("raw", "fields", "issuetype", "name"), "targetName": "issuetype"},
+										 {"sourceName": ("raw","fields", "priority", "name"), "targetName": "priority"},
+										 {"sourceName": ("raw", "fields", "project", "name"), "targetName": "project"},
+										 {"sourceName": ("raw", "fields", "assignee", "name"), "targetName": "assignee"}])
+
+def parseFieldsFromIssue(sourceIssue, fields):
+	parsedIssue = {}
+	for field in fields:
+		fieldValue = get_nested(vars(sourceIssue), *field["sourceName"])
+		if fieldValue is not None:
+			parsedIssue[field["targetName"]] = fieldValue
+	return parsedIssue
+
+def get_nested(data, *args):
+	if args and data:
+		element = args[0]
+		if element:
+			value = data.get(element)
+			return value if len(args) == 1 else get_nested(value, *args[1:])
+
+def addSprintToParsedIssue(issue, parsedIssue):
+	#customfield_10006 = sprint
+	if "customfield_10006" in vars(issue.fields) and issue.fields.customfield_10006 is not None:
+		if len(issue.fields.customfield_10006) > 0:
+			for chunk in issue.fields.customfield_10006[0].split(','):
+				bite = chunk.split('=')
+				if bite[0] == 'name':
+					parsedIssue['sprint'] = bite[1]
+					break
+	return parsedIssue
+
+def addLinksToParsedIssue(parsedIssue, link_data):
+	parsedIssue['issuelinks'] = link_data
+	return parsedIssue
 
 def createLinkedEpicQueryString(linked_epic_set):
 	linked_epic_list = list(linked_epic_set)
@@ -68,53 +112,19 @@ def addLinksInQuerySetToLinksInTickets(all_links, query_set):
 			links_in_tickets.append(link)
 	return links_in_tickets
 
-def assignFieldsFromIssueIfPresent(sourceIssue, targetObject, fields):
-	for field in fields:
-		if sourceIssue.fields[field.sourceName] is not None:
-			targetObject[field.targetName] = sourceIssue.fields[field.sourceName]
-			
-def createParsedIssue(issue, link_data):
-	parsedIssue = {}
-	# assignFieldsFromIssueIfPresent(issue, parsedIssue,
-	# 							   fields= [{"sourceName": "key", "targetName": "key"},
-	# 										{"sourceName": "summary", "targetName": "summary"},
-	# 										])
-	if issue.key is not None:
-		parsedIssue['key'] = issue.key
-	if issue.fields.summary is not None:
-		parsedIssue['summary'] = issue.fields.summary
-	if issue.fields.status is not None:
-		parsedIssue['status'] = issue.fields.status.name
-	if issue.fields.issuetype is not None:
-		parsedIssue['issuetype'] = issue.fields.issuetype.name
-	if "priority" in vars(issue.fields) and issue.fields.priority is not None:
-		parsedIssue['priority'] = issue.fields.priority.name
-	if issue.fields.project is not None:
-		parsedIssue['project'] = issue.fields.project.name
-	if issue.fields.assignee is not None:
-		parsedIssue['assignee'] = issue.fields.assignee.name
-
-	parsedIssue['issuelinks'] = link_data
-		
-	#customfield_10006 = sprint
-	if "customfield_10006" in vars(issue.fields) and issue.fields.customfield_10006 is not None:
-		if len(issue.fields.customfield_10006) > 0:			
-			for chunk in issue.fields.customfield_10006[0].split(','):
-				bite = chunk.split('=')
-				if  bite[0] == 'name':
-					parsedIssue['sprint'] = bite[1]
-					break 			
-	return parsedIssue
-
 def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
 	#customfield_10007 = epic key			
 	if "customfield_10007" in vars(issue.fields) and issue.fields.customfield_10007 is not None:
+
 		linked_epic_set.add(issue.fields.customfield_10007)
+
 		data = {
 			'issuetype': 'Epic',
 			'key': issue.fields.customfield_10007,
 		}
+
 		link_data.append(data)
+
 		all_links.append({
 			'source': issue.key,
 			'target': issue.fields.customfield_10007,

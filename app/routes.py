@@ -34,9 +34,9 @@ def caliper_queries():
 	return displayCaliperQueries()
 
 def submit_query(query):
-	# authed_jira = get_jira_auth()
+	authed_jira = get_jira_auth()
 	# authed_jira = get_jira_auth_no_server_info()
-	authed_jira = get_jira_auth_no_creds()
+	# authed_jira = get_jira_auth_no_creds()
 	dataset, links, query_list, linked_epic_query_string, query_epic_set, error = get_jira_query_results(
 		query_string=query, threading=True, authed_jira=authed_jira)
 	if error is not None:
@@ -86,9 +86,12 @@ def addLinkedEpicsToDatasetLinks(dataset, linked_epic_query_string, authed_jira)
 			for linked_issue in issue['issuelinks']:
 				if linked_issue['key'] in epic_hash and 'issuetype' in linked_issue and linked_issue[
 					'issuetype'] == 'Epic':
-					linked_issue['summary'] = epic_hash[linked_issue['key']]['summary']
-					linked_issue['priority'] = epic_hash[linked_issue['key']]['priority']
-					linked_issue['status'] = epic_hash[linked_issue['key']]['status']
+					if 'summary' in epic_hash[linked_issue['key']]:
+						linked_issue['summary'] = epic_hash[linked_issue['key']]['summary']
+					if 'priority' in epic_hash[linked_issue['key']]:
+						linked_issue['priority'] = epic_hash[linked_issue['key']]['priority']
+					if 'status' in epic_hash[linked_issue['key']]:
+						linked_issue['status'] = epic_hash[linked_issue['key']]['status']
 
 def displayHome():
 	dataset = {}
