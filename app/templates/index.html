@@ -132,10 +132,6 @@
                     "Task": 25
                 }
 
-            // var legendSVG = d3.select('body').append('svg').attr('width', width).attr('height', 250)
-            //                 .append('circle').attr('cx', 20).attr('cy', 20).attr('r', 10).attr('fill', STATUSCOLORS["To Do"])
-            //                 .append('text').attr('font-size', 15).attr('dx',40).attr('dy', 20).text('To Do')
-
             var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
                 nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
                 node = svg.append('g').attr('class', 'nodes').selectAll('circle'),

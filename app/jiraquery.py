@@ -1,13 +1,10 @@
 #!/usr/bin/env python
 
-import configparser
 import os
-import jira
 from jira.exceptions import JIRAError
 import threading
 import logging
 import math
-
 
 
 def get_jira_query_results(query_string, threading, authed_jira):
@@ -223,27 +220,7 @@ def search_jira(query, split, authed_jira):
             maxResults=((count + 1) * split))
         big_list.extend(second_list)
         count = count + 1
-    return big_list 
-
-def get_credentials():
-	SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
-
-	Config = configparser.ConfigParser()
-	Config.read(SCRIPT_DIR + '/' + 'config.ini')
-
-	return Config.get('Auth', 'username'), Config.get('Auth', 'password'), Config.get('Basic', 'url')
-
-def get_jira_auth():
-	username, password, url = get_credentials()
-	return jira.JIRA(url, basic_auth=(username, password))
-
-def get_jira_auth_no_creds():
-	_, _, url = get_credentials()
-	return jira.JIRA(url, options={"verify":False})
-
-def get_jira_auth_no_server_info():
-	username, password, url = get_credentials()
-	return jira.JIRA(url, basic_auth=(username, password), get_server_info=False)
+    return big_list
 
 def search_jira_threaded(query, authed_jira):
 	full_query_results = []
