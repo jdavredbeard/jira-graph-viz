@@ -12,7 +12,7 @@ After cloning the repo:
 - Open `localhost:8000` in browser
 
 Using jira-graph-viz:
-- Enter a JQL query in the text field and click 'submit'. The page loads with graph nodes representing tickets from jira query and edges representing links between tickets. The subtask and epic-link relationships are treated as links as well.
+- Enter a JQL query in the text field and click 'submit'. The page loads with graph nodes representing tickets from the jira query and edges representing links between tickets. The subtask and epic-link relationships are treated as links as well.
 - Jira key labels (ex. EAQ-125) are hyperlinks to jira tickets.
 - Clicking a node will toggle visibility of nodes linked to that node that are not selected by the jira query
 - Radio buttons toggle visibility of all linked nodes that are not selected by the jira query.
