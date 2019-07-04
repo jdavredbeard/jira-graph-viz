@@ -179,25 +179,10 @@ def addParentToLinkData(issue, link_data, all_links):
 def addIssueLinksToLinkData(issue, links, link_data, all_links):
 	for link in links:
 		if link is not None:
-
-			# data = {
-			# 	'type': link.type.name,
-			# 	# 'inwardtype': link.type.inward,
-			# 	# 'outwardtype': link.type.outward,
-			# }
 			if 'inwardIssue' in vars(link):
-
 
 				parsedIssue = createParsedInwardIssue(link)
 				parsedIssue['direction'] = 'inward'
-
-
-				# data['key'] = link.inwardIssue.key
-				# data['summary'] = link.inwardIssue.fields.summary
-				# data['status'] = link.inwardIssue.fields.status.name
-				# data['issuetype'] = link.inwardIssue.fields.issuetype.name
-				# if "priority" in vars(link.inwardIssue.fields) and link.inwardIssue.fields.priority is not None:
-				# 	data['priority'] = link.inwardIssue.fields.priority.name
 
 				all_links.append({
 				'source': issue.key,
@@ -210,20 +195,13 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 
 				parsedIssue['direction'] = 'outward'
 
-				# data['key'] = link.outwardIssue.key
-				# data['summary'] = link.outwardIssue.fields.summary
-				# data['status'] = link.outwardIssue.fields.status.name
-				# data['issuetype'] = link.outwardIssue.fields.issuetype.name
-				# if "priority" in vars(link.outwardIssue.fields) and link.outwardIssue.fields.priority is not None:
-				# 	data['priority'] = link.outwardIssue.fields.priority.name
-
 				all_links.append({
 				'source': issue.key,
 				'target': link.outwardIssue.key,
 				'type': link.type.name,
 				'direction': 'outward'
 				})
-			#add data to array to be held within issue data	
+
 			link_data.append(parsedIssue)
 
 def search_jira(query, split, authed_jira): 
