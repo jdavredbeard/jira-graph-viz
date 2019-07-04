@@ -64,8 +64,27 @@ def createParsedIssue(issue):
 										 {"sourceName": ("raw", "fields", "status","name"), "targetName": "status"},
 										 {"sourceName": ("raw", "fields", "issuetype", "name"), "targetName": "issuetype"},
 										 {"sourceName": ("raw","fields", "priority", "name"), "targetName": "priority"},
-										 {"sourceName": ("raw", "fields", "project", "name"), "targetName": "project"},
 										 {"sourceName": ("raw", "fields", "assignee", "name"), "targetName": "assignee"}])
+
+def createParsedInwardIssue(issue):
+	return parseFieldsFromIssue(issue,
+								fields = [{"sourceName": ("raw", "inwardIssue", "key"), "targetName": "key"},
+										  {"sourceName": ("raw", "inwardIssue", "fields", "summary"), "targetName": "summary"},
+										  {"sourceName": ("raw", "inwardIssue", "fields", "status","name"), "targetName": "status"},
+										  {"sourceName": ("raw", "inwardIssue", "fields", "issuetype", "name"), "targetName": "issuetype"},
+										  {"sourceName": ("raw", "inwardIssue", "fields", "priority", "name"), "targetName": "priority"},
+										  {"sourceName": ("raw", "inwardIssue", "fields", "assignee", "name"), "targetName": "assignee"},
+										  {"sourceName": ("raw", "type", "name"), "targetName": "type"}])
+
+def createParsedOutwardIssue(issue):
+	return parseFieldsFromIssue(issue,
+								fields = [{"sourceName": ("raw", "outwardIssue", "key"), "targetName": "key"},
+										  {"sourceName": ("raw", "outwardIssue", "fields", "summary"), "targetName": "summary"},
+										  {"sourceName": ("raw", "outwardIssue", "fields", "status","name"), "targetName": "status"},
+										  {"sourceName": ("raw", "outwardIssue", "fields", "issuetype", "name"), "targetName": "issuetype"},
+										  {"sourceName": ("raw", "outwardIssue", "fields", "priority", "name"), "targetName": "priority"},
+										  {"sourceName": ("raw", "outwardIssue", "fields", "assignee", "name"), "targetName": "assignee"},
+										  {"sourceName": ("raw", "type", "name"), "targetName": "type"}])
 
 def parseFieldsFromIssue(sourceIssue, fields):
 	parsedIssue = {}
@@ -131,14 +150,11 @@ def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
 def addSubtasksToLinkData(issue, subtasks, link_data, all_links):			
 	for subtask in subtasks:
 		if subtask is not None:
-			data = {
-				'type': 'subtask',
-				'key': subtask.key,
-				'summary': subtask.fields.summary,
-				'status': subtask.fields.status.name,
-				'priority': subtask.fields.priority.name
-			}
-			link_data.append(data)
+			parsedSubtask = createParsedIssue(subtask)
+
+			parsedSubtask['type'] = 'subtask'
+			link_data.append(parsedSubtask)
+
 			all_links.append({
 				'source': issue.key,
 				'target': subtask.key,
@@ -146,16 +162,14 @@ def addSubtasksToLinkData(issue, subtasks, link_data, all_links):
 				})
 
 def addParentToLinkData(issue, link_data, all_links):
-	if 'parent' in vars(issue.fields).keys():
+	if 'parent' in vars(issue.fields):
 		parent = issue.fields.parent
-		data = {
-			'type': 'parent',
-			'key': parent.key,
-			'summary': parent.fields.summary,
-			'status': parent.fields.status.name,
-			'priority': parent.fields.priority.name
-		}
-		link_data.append(data)
+		parsedParent = createParsedIssue(parent)
+
+		parsedParent['type'] = 'parent'
+
+		link_data.append(parsedParent)
+
 		all_links.append({
 			'source': issue.key,
 			'target': parent.key,
@@ -165,20 +179,10 @@ def addParentToLinkData(issue, link_data, all_links):
 def addIssueLinksToLinkData(issue, links, link_data, all_links):
 	for link in links:
 		if link is not None:
+			if 'inwardIssue' in vars(link):
 
-			data = {
-				'type': link.type.name,
-				'inwardtype': link.type.inward,
-				'outwardtype': link.type.outward,
-			}
-			if 'inwardIssue' in vars(link).keys():
-				data['direction'] = 'inward'
-				data['key'] = link.inwardIssue.key
-				data['summary'] = link.inwardIssue.fields.summary
-				data['status'] = link.inwardIssue.fields.status.name
-				data['issuetype'] = link.inwardIssue.fields.issuetype.name
-				if "priority" in vars(link.inwardIssue.fields) and link.inwardIssue.fields.priority is not None:
-					data['priority'] = link.inwardIssue.fields.priority.name
+				parsedIssue = createParsedInwardIssue(link)
+				parsedIssue['direction'] = 'inward'
 
 				all_links.append({
 				'source': issue.key,
@@ -186,14 +190,10 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 				'type': link.type.name,
 				'direction': 'inward'
 				})
-			elif 'outwardIssue' in vars(link).keys():
-				data['direction'] = 'outward'
-				data['key'] = link.outwardIssue.key
-				data['summary'] = link.outwardIssue.fields.summary
-				data['status'] = link.outwardIssue.fields.status.name
-				data['issuetype'] = link.outwardIssue.fields.issuetype.name
-				if "priority" in vars(link.outwardIssue.fields) and link.outwardIssue.fields.priority is not None:
-					data['priority'] = link.outwardIssue.fields.priority.name
+			elif 'outwardIssue' in vars(link):
+				parsedIssue = createParsedOutwardIssue(link)
+
+				parsedIssue['direction'] = 'outward'
 
 				all_links.append({
 				'source': issue.key,
@@ -201,8 +201,8 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 				'type': link.type.name,
 				'direction': 'outward'
 				})
-			#add data to array to be held within issue data	
-			link_data.append(data)
+
+			link_data.append(parsedIssue)
 
 def search_jira(query, split, authed_jira): 
     big_list = []
