@@ -4,7 +4,7 @@ Visit the app at http://jira-graph-viz-automation.apps.els-ols.com/
 
 To run it locally:
 
-Make sure you have python and pip installed. Starting a virtualenv to is recommended.
+Make sure you have python and pip installed. Starting a virtualenv is recommended.
 
 After cloning the repo:
 - `pip install -r requirements.txt`
