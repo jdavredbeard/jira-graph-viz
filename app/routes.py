@@ -22,7 +22,7 @@ def index():
 		flash('Query submitted: {}'.format(query))
 		return submit_query(query, authed_jira)
 	else:
-		return displayHome()
+		return display_home()
 
 @app.route('/health', methods=['GET'])
 def health():
@@ -35,8 +35,8 @@ def submit_query(query, authed_jira):
 	if error is not None:
 		flash('Error Code: {} - {}'.format(error.status_code, error.text))
 	else:
-		addLinkedEpicsToDatasetLinks(dataset, linked_epic_query_string, authed_jira)
-		addChildrenOfEpicsInQueryEpicSetToDataset(dataset, query_epic_set, authed_jira)	
+		add_linked_epics_to_dataset_links(dataset, linked_epic_query_string, authed_jira)
+		add_children_of_epics_in_query_epic_set_to_dataset(dataset, query_epic_set, authed_jira)
 		flash('Issues in query results: {}'.format(len(dataset)))
 		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
 		flash('Share this jira-graph-viz: {}'.format(url))
@@ -45,7 +45,7 @@ def submit_query(query, authed_jira):
 	form.query.data = query
 	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
 
-def addChildrenOfEpicsInQueryEpicSetToDataset(dataset, query_epic_set, authed_jira):
+def add_children_of_epics_in_query_epic_set_to_dataset(dataset, query_epic_set, authed_jira):
 	if query_epic_set:
 		epic_link_hash = {}
 		query_epic_tuple = tuple(query_epic_set)
@@ -64,7 +64,7 @@ def addChildrenOfEpicsInQueryEpicSetToDataset(dataset, query_epic_set, authed_ji
 				for epic_link_issue in epic_link_hash[issue['key']]:
 					issue['issuelinks'].append(epic_link_issue)
 
-def addLinkedEpicsToDatasetLinks(dataset, linked_epic_query_string, authed_jira):
+def add_linked_epics_to_dataset_links(dataset, linked_epic_query_string, authed_jira):
 	epic_hash = {}
 	if linked_epic_query_string != 'issuekey in ()':
 		flash('Linked Epic query submitted: {}'.format(linked_epic_query_string))
@@ -86,7 +86,7 @@ def addLinkedEpicsToDatasetLinks(dataset, linked_epic_query_string, authed_jira)
 					if 'status' in epic_hash[linked_issue['key']]:
 						linked_issue['status'] = epic_hash[linked_issue['key']]['status']
 
-def displayHome():
+def display_home():
 	dataset = {}
 	links = {}
 	query_list = []
