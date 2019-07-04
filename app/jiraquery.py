@@ -10,19 +10,18 @@ import math
 def get_jira_query_results(query_string, threading, authed_jira):
 
 	logging.basicConfig(level=logging.DEBUG,
-                    format='[%(levelname)s] (%(threadName)-10s) %(message)s',
-                    )
+                    format='[%(levelname)s] (%(threadName)-10s) %(message)s')
 	try:
 		issues = search_jira_threaded(query_string, authed_jira) if threading else search_jira(query_string, 100, authed_jira)
-		return parseDataFromJiraApiResponse(issues)
+		return parse_data_from_jira_api_response(issues)
 	except JIRAError as e:
 		return [], [], [], "", None, e
 
-def parseDataFromJiraApiResponse(issues):
-	tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parseIssues(issues)	
+def parse_data_from_jira_api_response(issues):
+	tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parse_issues(issues)	
 	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set, None
 
-def parseIssues(issues):
+def parse_issues(issues):
 	linked_epic_set = set()
 	query_epic_set = set()
 	query_set = set()
@@ -30,20 +29,20 @@ def parseIssues(issues):
 	all_links = []
 
 	for issue in issues:
-		parsedIssue = createParsedIssue(issue)
+		parsedIssue = create_parsed_issue(issue)
 
-		parsedIssue = addSprintToParsedIssue(issue, parsedIssue)
+		parsedIssue = add_sprint_to_parsed_issue(issue, parsedIssue)
 
 		links = issue.fields.issuelinks
 		subtasks = issue.fields.subtasks
 		link_data = []
 
-		addIssueLinksToLinkData(issue, links, link_data, all_links)
-		addParentToLinkData(issue, link_data, all_links)
-		addSubtasksToLinkData(issue, subtasks, link_data, all_links)			
-		addEpicToLinkData(issue, linked_epic_set, link_data, all_links)
+		add_issue_links_to_link_data(issue, links, link_data, all_links)
+		add_parent_to_link_data(issue, link_data, all_links)
+		add_subtasks_to_link_data(issue, subtasks, link_data, all_links)
+		add_epic_to_link_data(issue, linked_epic_set, link_data, all_links)
 
-		parsedIssue = addLinksToParsedIssue(parsedIssue, link_data)
+		parsedIssue = add_links_to_parsed_issue(parsedIssue, link_data)
 
 		tickets.append(parsedIssue)
 
@@ -52,13 +51,13 @@ def parseIssues(issues):
 
 		query_set.add(issue.key)
 
-	links_in_tickets = addLinksInQuerySetToLinksInTickets(all_links, query_set)
+	links_in_tickets = add_links_in_query_set_to_links_in_tickets(all_links, query_set)
 	query_list = list(query_set)
-	linked_epic_query_string = createLinkedEpicQueryString(linked_epic_set)
+	linked_epic_query_string = create_linked_epic_query_string(linked_epic_set)
 	return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set
 
-def createParsedIssue(issue):
-	return parseFieldsFromIssue(issue,
+def create_parsed_issue(issue):
+	return parse_fields_from_issue(issue,
 								fields = [{"sourceName": ("key",), "targetName": "key"},
 										 {"sourceName": ("raw", "fields", "summary"), "targetName": "summary"},
 										 {"sourceName": ("raw", "fields", "status","name"), "targetName": "status"},
@@ -66,8 +65,8 @@ def createParsedIssue(issue):
 										 {"sourceName": ("raw","fields", "priority", "name"), "targetName": "priority"},
 										 {"sourceName": ("raw", "fields", "assignee", "name"), "targetName": "assignee"}])
 
-def createParsedInwardIssue(issue):
-	return parseFieldsFromIssue(issue,
+def create_parsed_inward_issue(issue):
+	return parse_fields_from_issue(issue,
 								fields = [{"sourceName": ("raw", "inwardIssue", "key"), "targetName": "key"},
 										  {"sourceName": ("raw", "inwardIssue", "fields", "summary"), "targetName": "summary"},
 										  {"sourceName": ("raw", "inwardIssue", "fields", "status","name"), "targetName": "status"},
@@ -76,8 +75,8 @@ def createParsedInwardIssue(issue):
 										  {"sourceName": ("raw", "inwardIssue", "fields", "assignee", "name"), "targetName": "assignee"},
 										  {"sourceName": ("raw", "type", "name"), "targetName": "type"}])
 
-def createParsedOutwardIssue(issue):
-	return parseFieldsFromIssue(issue,
+def create_parsed_outward_issue(issue):
+	return parse_fields_from_issue(issue,
 								fields = [{"sourceName": ("raw", "outwardIssue", "key"), "targetName": "key"},
 										  {"sourceName": ("raw", "outwardIssue", "fields", "summary"), "targetName": "summary"},
 										  {"sourceName": ("raw", "outwardIssue", "fields", "status","name"), "targetName": "status"},
@@ -86,7 +85,7 @@ def createParsedOutwardIssue(issue):
 										  {"sourceName": ("raw", "outwardIssue", "fields", "assignee", "name"), "targetName": "assignee"},
 										  {"sourceName": ("raw", "type", "name"), "targetName": "type"}])
 
-def parseFieldsFromIssue(sourceIssue, fields):
+def parse_fields_from_issue(sourceIssue, fields):
 	parsedIssue = {}
 	for field in fields:
 		fieldValue = get_nested(vars(sourceIssue), *field["sourceName"])
@@ -101,7 +100,7 @@ def get_nested(data, *args):
 			value = data.get(element)
 			return value if len(args) == 1 else get_nested(value, *args[1:])
 
-def addSprintToParsedIssue(issue, parsedIssue):
+def add_sprint_to_parsed_issue(issue, parsedIssue):
 	#customfield_10006 = sprint
 	if "customfield_10006" in vars(issue.fields) and issue.fields.customfield_10006 is not None:
 		if len(issue.fields.customfield_10006) > 0:
@@ -112,15 +111,15 @@ def addSprintToParsedIssue(issue, parsedIssue):
 					break
 	return parsedIssue
 
-def addLinksToParsedIssue(parsedIssue, link_data):
+def add_links_to_parsed_issue(parsedIssue, link_data):
 	parsedIssue['issuelinks'] = link_data
 	return parsedIssue
 
-def createLinkedEpicQueryString(linked_epic_set):
+def create_linked_epic_query_string(linked_epic_set):
 	linked_epic_list = list(linked_epic_set)
 	return 'issuekey in (' + ','.join(linked_epic_list) + ')'
 
-def addLinksInQuerySetToLinksInTickets(all_links, query_set):
+def add_links_in_query_set_to_links_in_tickets(all_links, query_set):
 	links_in_tickets = []
 	for link in all_links:
 		if link['source'] in query_set and link['target'] in query_set:
@@ -128,7 +127,7 @@ def addLinksInQuerySetToLinksInTickets(all_links, query_set):
 			links_in_tickets.append(link)
 	return links_in_tickets
 
-def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
+def add_epic_to_link_data(issue, linked_epic_set, link_data, all_links):
 	#customfield_10007 = epic key			
 	if "customfield_10007" in vars(issue.fields) and issue.fields.customfield_10007 is not None:
 
@@ -147,10 +146,10 @@ def addEpicToLinkData(issue, linked_epic_set, link_data, all_links):
 			'type': 'epic parent'
 			})
 
-def addSubtasksToLinkData(issue, subtasks, link_data, all_links):			
+def add_subtasks_to_link_data(issue, subtasks, link_data, all_links):
 	for subtask in subtasks:
 		if subtask is not None:
-			parsedSubtask = createParsedIssue(subtask)
+			parsedSubtask = create_parsed_issue(subtask)
 
 			parsedSubtask['type'] = 'subtask'
 			link_data.append(parsedSubtask)
@@ -161,10 +160,10 @@ def addSubtasksToLinkData(issue, subtasks, link_data, all_links):
 				'type': 'subtask'
 				})
 
-def addParentToLinkData(issue, link_data, all_links):
+def add_parent_to_link_data(issue, link_data, all_links):
 	if 'parent' in vars(issue.fields):
 		parent = issue.fields.parent
-		parsedParent = createParsedIssue(parent)
+		parsedParent = create_parsed_issue(parent)
 
 		parsedParent['type'] = 'parent'
 
@@ -176,12 +175,12 @@ def addParentToLinkData(issue, link_data, all_links):
 			'type': 'parent'
 			})
 
-def addIssueLinksToLinkData(issue, links, link_data, all_links):
+def add_issue_links_to_link_data(issue, links, link_data, all_links):
 	for link in links:
 		if link is not None:
 			if 'inwardIssue' in vars(link):
 
-				parsedIssue = createParsedInwardIssue(link)
+				parsedIssue = create_parsed_inward_issue(link)
 				parsedIssue['direction'] = 'inward'
 
 				all_links.append({
@@ -191,7 +190,7 @@ def addIssueLinksToLinkData(issue, links, link_data, all_links):
 				'direction': 'inward'
 				})
 			elif 'outwardIssue' in vars(link):
-				parsedIssue = createParsedOutwardIssue(link)
+				parsedIssue = create_parsed_outward_issue(link)
 
 				parsedIssue['direction'] = 'outward'
 
