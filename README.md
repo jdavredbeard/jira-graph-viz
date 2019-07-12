@@ -7,6 +7,8 @@ To run it locally:
 Make sure you have python and pip installed. Starting a virtualenv is recommended.
 
 After cloning the repo:
+- create a `.env` file in the project directory and set a cryptographic key for the Flask-WTF webform with `export JIRA-GRAPH-VIZ-KEY={your-secret-key}`
+- source the `.env` file
 - `pip install -r requirements.txt`
 - `gunicorn jira-graph-viz`
 - Open `localhost:8000` in browser
