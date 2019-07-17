@@ -10,11 +10,22 @@ class Configs:
         self._password = self._config.get('Auth', 'password')
         self._url = self._config.get('Basic', 'url')
 
-        self.authed_jira = jira.JIRA(self._url, basic_auth=(self._username, self._password))
-
     def _get_config(self):
         SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
         config = configparser.ConfigParser()
         config.read(SCRIPT_DIR + '/' + 'config.ini')
         return config
+
+    def get_jira(self):
+        if self._username != '' and self._password != '':
+            return self.get_authed_jira()
+        else:
+            return self.get_unauthed_jira()
+
+    def get_authed_jira(self):
+        return jira.JIRA(basic_auth=(self._username, self._password), options={'server': self._url})
+
+    def get_unauthed_jira(self):
+        return jira.JIRA(self._url)
+
