@@ -12,49 +12,37 @@ const height = 1600 + querySet.size * 5;
 const width = 1600 + querySet.size * 5;
 
 // Defines the colors of the nodes based on their status
+
 const STATUSCOLORS = {
-    "Draft": "#E8E8E8", //light grey
-    "To Do": "#8e8e93", //grey
-    "Icebox": "aqua",
-    "In Progress": "#ffcc00", //yellow
-    "Code Review": "#ff8300", //bright orange
-    "Blocked": "red",
-    "Testing Failed": "purple",
-    "Ready for Testing": "#007aff", //dark blue
-    "Ready for Acceptance": "#0D98BA", //blue-green
-    "Ready for Production": "#0D98BA", //blue-green
-    "Ready for Release": "#0D98BA", //blue-green
-    "Ready to Deploy": "#0D98BA", //blue-green
-    "Deployed": "#4cd964", // green
-    "Done": "#4cd964", // green
-    "Testing Passed": "#4cd964", // green
-    "Released": "#4cd964", //green
-    "Completed": "#4cd964", //green
-    "Complete": "#4cd964", //green
+    // suggestion statuses
+    "Gathering Interest": "#8e8e93", //grey
+    // bug statuses
+    "Open": "#8e8e93", //grey
+    "Needs Verification": "#ffcc00", //yellow
+    "Verified": "#ff8300", //bright orange
+    "Awaiting Development": "red",
+    "Awaiting Soak": "purple",
+    "In Progress": "#007aff", //dark blue
+    "Technical Review": "#0D98BA", //blue-green
+    "Soaking": "#0D98BA", //blue-green
+    "Resolved": "#4cd964", // green
+    "Closed": "#4cd964", // green
 }
 
 // Defines the radius of the ring to which nodes with a given status are attracted in
 // the force simulation.
 
 const RADIALFORCERADIUS = {
-    "Draft": 0,
-    "To Do": height * 0.05,
-    "Icebox": height * 0.3,
-    "In Progress": height * 0.1,
-    "Code Review": height * 0.1,
-    "Blocked": 0,
-    "Testing Failed": 0,
-    "Ready for Testing": height * 0.15,
-    "Ready for Acceptance": height * 0.2,
-    "Ready for Production": height * 0.2,
-    "Ready for Release": height * 0.2,
-    "Ready to Deploy": height * 0.2,
-    "Deployed": height * 0.25, // green
-    "Done": height * 0.25, // green
-    "Testing Passed": height * 0.25, // green
-    "Released": height * 0.25, //green
-    "Completed": height * 0.25, //green
-    "Complete": height   * 0.25, //green
+    "Open": 0,
+    "Needs Verification": height * 0.05,
+    "Verified": height * 0.1,
+    "Awaiting Development": height * 0.1,
+    "Awaiting Soak": height * 0.15,
+    "In Progress": height * 0.2,
+    "Technical Review": height * 0.25,
+    "Soaking": height * 0.28,
+    "Resolved": height * 0.3,
+    "Closed": height * 0.33
 }
 
 // Defines the color of the lines between nodes, representing the type of link or relationship
@@ -84,5 +72,5 @@ const NODERADIUS = {
     "Bug": 15,
     "Sub-task": 10,
     "QA Test Case": 5,
-    "Task": 25
+    "Task": 25,
 }
