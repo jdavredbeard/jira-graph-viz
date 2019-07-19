@@ -14,7 +14,7 @@ class Configs:
         SCRIPT_DIR = os.path.dirname(os.path.realpath(__file__))
 
         config = configparser.ConfigParser()
-        config.read(SCRIPT_DIR + '/' + 'config.ini')
+        config.read(SCRIPT_DIR + '/instance/config.ini')
         return config
 
     def get_jira(self):

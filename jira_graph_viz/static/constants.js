@@ -16,6 +16,7 @@ const width = 1600 + querySet.size * 5;
 const STATUSCOLORS = {
     // suggestion statuses
     "Gathering Interest": "#8e8e93", //grey
+    
     // bug statuses
     "Open": "#8e8e93", //grey
     "Needs Verification": "#ffcc00", //yellow

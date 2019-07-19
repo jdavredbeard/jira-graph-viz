@@ -1,13 +1,13 @@
 from flask import render_template, flash
 from flask import request
-from app import app
-from app.forms import QueryForm
-from app.jiraquery import get_jira_query_results
+from jira_graph_viz import jira_graph_viz
+from jira_graph_viz.forms import QueryForm
+from jira_graph_viz.jiraquery import get_jira_query_results
 import urllib
-from app.jira_graph_viz_config import Configs
+from jira_graph_viz_config import Configs
 
-@app.route('/', methods=['GET','POST'])
-@app.route('/index', methods=['GET','POST'])
+@jira_graph_viz.route('/', methods=['GET','POST'])
+@jira_graph_viz.route('/index', methods=['GET','POST'])
 def index():
 	form = QueryForm()
 	query = request.args.get('query')
@@ -24,7 +24,7 @@ def index():
 	else:
 		return display_home()
 
-@app.route('/health', methods=['GET'])
+@jira_graph_viz.route('/health', methods=['GET'])
 def health():
 	return 'JIRA-GRAPH-VIZ Online'
 
