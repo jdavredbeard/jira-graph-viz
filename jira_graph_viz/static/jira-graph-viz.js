@@ -40,71 +40,6 @@ var dragDrop = d3.drag().on('start', function (node) {
 
 update();
 
-document.getElementById("allLinkedTickets").addEventListener("click", function() {
-    var toAddtoDataset = new Set();
-
-    [...dataset].forEach(issue => {
-        //if this is an issue from the original query (and thus has issuelinks field)
-        if ("issuelinks" in issue) {
-            issue.issuelinks.forEach(linkedIssue => {
-                if (!nodeSet.has(linkedIssue.key)) {
-                    linkedIssue['addedBy'] = issue.key;
-                    toAddtoDataset.add(linkedIssue);
-                    nodeSet.add(linkedIssue.key);
-                }
-
-                links.add({
-                    'addedBy': issue.key,
-                    'source': issue.key,
-                    'target': linkedIssue.key,
-                    'type': linkedIssue.type
-                });
-            });
-        }
-    });
-
-    [...toAddtoDataset].forEach(linkedIssue => {
-        dataset.add(linkedIssue);
-    })
-    d3.selectAll('circle').classed('clicked', true);
-    console.log("adding all linked tickets");
-    console.log("nodeSet size: " + nodeSet.size);
-    console.log("querySet size: " + querySet.size);
-    console.log("links size: " + links.size);
-    console.log("dataset size: " + dataset.size);
-    console.log("nodeSet: " + [...nodeSet].toString());
-    update();
-});
-
-document.getElementById("queryTicketsOnly").addEventListener("click", function() {
-    nodeSet.forEach(key => {
-        if (!querySet.has(key)) {
-            nodeSet.delete(key);
-        }
-    });
-
-    dataset.forEach((ticket, j) => {
-        if ('addedBy' in ticket) {
-            dataset.delete(ticket);
-        }
-    });
-
-    links.forEach((link, k) => {
-        if ('addedBy' in link && link.addedBy != 'query') {
-            links.delete(link);
-        }
-    });
-    d3.selectAll('circle').classed('clicked', false);
-    console.log("deleting all linked tickets outside of query");
-    console.log("nodeSet size: " + nodeSet.size);
-    console.log("querySet size: " + querySet.size);
-    console.log("links size: " + links.size);
-    console.log("dataset size: " + dataset.size);
-    console.log("nodeSet: " + [...nodeSet].toString());
-
-    update();
-});
-
 function update() {
 
     node = node.data([...dataset], d => d.key);
@@ -119,7 +54,7 @@ function update() {
         .call(dragDrop)
         .on('mouseover', handleMouseOver)
         .on('mouseout', handleMouseOut)
-        .on('click', handleClick);
+       // .on('click', handleClick);
 
     nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
     nodeLink.exit().remove();
@@ -173,73 +108,6 @@ function getRadiusFromTicketType(d) {
 function getRadialForceRadiusFromTicketStatus(d) {
     if (d.status in RADIALFORCERADIUS) return RADIALFORCERADIUS[d.status];
     else return 0;
-}
-
-function handleClick(d, i) {
-    var issuelinks = d.issuelinks;
-    var issueAdded = false;
-    if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
-        issuelinks.forEach(issue => {
-            if (!nodeSet.has(issue.key)) {
-                issue['addedBy'] = d.key;
-                issue['x'] = d.x;
-                issue['y'] = d.y;
-                dataset.add(issue);
-                nodeSet.add(issue.key);
-                links.add({
-                    'addedBy': d.key,
-                    'source': d.key,
-                    'target': issue.key,
-                    'type': issue.type
-                });
-                issueAdded = true;
-            }
-        });
-
-        if (issueAdded) {
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-        console.log("adding linked tickets of clicked ticket");
-        console.log("nodeSet size: " + nodeSet.size);
-        console.log("querySet size: " + querySet.size);
-        console.log("links size: " + links.size);
-        console.log("dataset size: " + dataset.size);
-        console.log("nodeSet: " + [...nodeSet].toString());
-
-    }
-    else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-        issuelinks.forEach(issue => {
-            if (!querySet.has(issue.key)) {
-                nodeSet.delete(issue.key);
-            }
-        });
-
-        dataset.forEach((ticket, j) => {
-            if ('addedBy' in ticket && ticket.addedBy === d.key) {
-                dataset.delete(ticket);
-            }
-        });
-
-        links.forEach((link, k) => {
-            if ('addedBy' in link && link.addedBy == d.key) {
-                links.delete(link);
-            }
-        });
-
-        d.fx = null;
-        d.fy = null;
-
-        console.log("deleting linked tickets of clicked ticket");
-        console.log("nodeSet size: " + nodeSet.size);
-        console.log("querySet size: " + querySet.size);
-        console.log("links size: " + links.size);
-        console.log("dataset size: " + dataset.size);
-        console.log("nodeSet: " + [...nodeSet].toString());
-    }
-
-    d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
-    update();
 }
 
 function handleMouseOver(d, i) {
