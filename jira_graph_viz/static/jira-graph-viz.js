@@ -160,19 +160,19 @@ function getDxOffsetFromKeyLength(d) {
 
 function getKeyTextOffsetFromTicketType(d) {
     if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype] + 15;
-    else return 25;
+    return 25;
 
 }
 
 function getRadiusFromTicketType(d) {
     if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype];
-    else return 10;
+    return 10;
 
 }
 
 function getRadialForceRadiusFromTicketStatus(d) {
     if (d.status in RADIALFORCERADIUS) return RADIALFORCERADIUS[d.status];
-    else return 0;
+    return 0;
 }
 
 function handleClick(d, i) {
@@ -265,17 +265,17 @@ function handleMouseOut(d, i) {
 
 function getStrokeColor(d) {
     if (querySet.has(d.key)) return 'black';
-    else return getNodeColorFromStatus;
+    return getNodeColorFromStatus;
 }
 
 function getNodeColorFromStatus(node) {
     if (node.status in STATUSCOLORS) return STATUSCOLORS[node.status];
-    else return 'black';
+    return 'black';
 }
 
 function getLineColorFromLinkType(link) {
     if (link.type in LINKCOLORS) return LINKCOLORS[link.type];
-    else return 'black';
+    return 'black';
 }
 
 function ticked() {
