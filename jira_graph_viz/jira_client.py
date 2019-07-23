@@ -53,7 +53,7 @@ def calculate_num_threads_from_total_results(query, jira_connection):
 def threaded_search_job(query, jira_connection, start_at, max_results, full_query_results):
     logging.debug('Starting')
     threaded_search_job_query_results = jira_connection.search_issues(query,
-                                                                      fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,customfield_10007,customfield_10006,parent',
+                                                                      fields='assignee,summary,status,issuetype,priority,project,issuelinks,subtasks,parent',
                                                                       startAt=start_at,
                                                                       maxResults=max_results)
     full_query_results.extend(threaded_search_job_query_results)
