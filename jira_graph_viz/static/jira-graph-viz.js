@@ -1,14 +1,14 @@
 
 
 var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
-    nodeLink = svg.append("g").attr('class', 'nodeLinks').selectAll('line'),
+    nodeLink = svg.append('g').attr('class', 'nodeLinks').selectAll('line'),
     node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
     keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
 
 // Define the div for the tooltip
-var div = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
+var div = d3.select('body').append('div')
+    .attr('class', 'tooltip')
+    .style('opacity', 0);
 
 var linkForce = d3.forceLink()
     .id(function (link) { return link.key })
@@ -40,12 +40,12 @@ var dragDrop = d3.drag().on('start', function (node) {
 
 update();
 
-document.getElementById("allLinkedTickets").addEventListener("click", function() {
+document.getElementById('allLinkedTickets').addEventListener('click', function() {
     var toAddtoDataset = new Set();
 
     [...dataset].forEach(issue => {
         //if this is an issue from the original query (and thus has issuelinks field)
-        if ("issuelinks" in issue) {
+        if ('issuelinks' in issue) {
             issue.issuelinks.forEach(linkedIssue => {
                 if (!nodeSet.has(linkedIssue.key)) {
                     linkedIssue['addedBy'] = issue.key;
@@ -67,16 +67,16 @@ document.getElementById("allLinkedTickets").addEventListener("click", function()
         dataset.add(linkedIssue);
     })
     d3.selectAll('circle').classed('clicked', true);
-    console.log("adding all linked tickets");
-    console.log("nodeSet size: " + nodeSet.size);
-    console.log("querySet size: " + querySet.size);
-    console.log("links size: " + links.size);
-    console.log("dataset size: " + dataset.size);
-    console.log("nodeSet: " + [...nodeSet].toString());
+    console.log('adding all linked tickets');
+    console.log('nodeSet size: ' + nodeSet.size);
+    console.log('querySet size: ' + querySet.size);
+    console.log('links size: ' + links.size);
+    console.log('dataset size: ' + dataset.size);
+    console.log('nodeSet: ' + [...nodeSet].toString());
     update();
 });
 
-document.getElementById("queryTicketsOnly").addEventListener("click", function() {
+document.getElementById('queryTicketsOnly').addEventListener('click', function() {
     nodeSet.forEach(key => {
         if (!querySet.has(key)) {
             nodeSet.delete(key);
@@ -95,12 +95,12 @@ document.getElementById("queryTicketsOnly").addEventListener("click", function()
         }
     });
     d3.selectAll('circle').classed('clicked', false);
-    console.log("deleting all linked tickets outside of query");
-    console.log("nodeSet size: " + nodeSet.size);
-    console.log("querySet size: " + querySet.size);
-    console.log("links size: " + links.size);
-    console.log("dataset size: " + dataset.size);
-    console.log("nodeSet: " + [...nodeSet].toString());
+    console.log('deleting all linked tickets outside of query');
+    console.log('nodeSet size: ' + nodeSet.size);
+    console.log('querySet size: ' + querySet.size);
+    console.log('links size: ' + links.size);
+    console.log('dataset size: ' + dataset.size);
+    console.log('nodeSet: ' + [...nodeSet].toString());
 
     update();
 });
@@ -124,11 +124,11 @@ function update() {
     nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
     nodeLink.exit().remove();
     nodeLink = nodeLink.enter()
-        .append("line")
-        .attr("stroke-width", 3)
-        .attr("stroke", getLineColorFromLinkType)
-        .attr("stroke-dasharray", [5,4])
-        .attr("opacity", .8)
+        .append('line')
+        .attr('stroke-width', 3)
+        .attr('stroke', getLineColorFromLinkType)
+        .attr('stroke-dasharray', [5,4])
+        .attr('opacity', .8)
         .merge(nodeLink);
 
     keyLink = keyLink.data([...dataset], d => d.key);
@@ -139,7 +139,7 @@ function update() {
         .attr('target', '_blank')
         .append('text')
         .text(node => node.key)
-        .attr("font-family", "Helvetica, sans-serif")
+        .attr('font-family', 'Helvetica, sans-serif')
         .attr('font-size', 12)
         .attr('font-weight', 'bold')
         .attr('dx', getDxOffsetFromKeyLength)
@@ -200,12 +200,12 @@ function handleClick(d, i) {
             d.fx = d.x;
             d.fy = d.y;
         }
-        console.log("adding linked tickets of clicked ticket");
-        console.log("nodeSet size: " + nodeSet.size);
-        console.log("querySet size: " + querySet.size);
-        console.log("links size: " + links.size);
-        console.log("dataset size: " + dataset.size);
-        console.log("nodeSet: " + [...nodeSet].toString());
+        console.log('adding linked tickets of clicked ticket');
+        console.log('nodeSet size: ' + nodeSet.size);
+        console.log('querySet size: ' + querySet.size);
+        console.log('links size: ' + links.size);
+        console.log('dataset size: ' + dataset.size);
+        console.log('nodeSet: ' + [...nodeSet].toString());
 
     }
     else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
@@ -230,12 +230,12 @@ function handleClick(d, i) {
         d.fx = null;
         d.fy = null;
 
-        console.log("deleting linked tickets of clicked ticket");
-        console.log("nodeSet size: " + nodeSet.size);
-        console.log("querySet size: " + querySet.size);
-        console.log("links size: " + links.size);
-        console.log("dataset size: " + dataset.size);
-        console.log("nodeSet: " + [...nodeSet].toString());
+        console.log('deleting linked tickets of clicked ticket');
+        console.log('nodeSet size: ' + nodeSet.size);
+        console.log('querySet size: ' + querySet.size);
+        console.log('links size: ' + links.size);
+        console.log('dataset size: ' + dataset.size);
+        console.log('nodeSet: ' + [...nodeSet].toString());
     }
 
     d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
@@ -246,36 +246,36 @@ function handleMouseOver(d, i) {
     d3.select(this).attr('fill', 'orange');
     div.transition()
         .duration(200)
-        .style("opacity", .9);
-    div .html("<b>Summary: </b>" + d.summary + "<br/>"  +
-        "<b>Priority: </b>" + d.priority + "<br/>" +
-        "<b>Assignee: </b>" + d.assignee + "<br/>" +
-        "<b>Issuetype: </b>" + d.issuetype + "<br/>" +
-        "<b>Status: </b>" + d.status)
-        .style("left", (d3.event.pageX) + "px")
-        .style("top", (d3.event.pageY - 28) + "px");
+        .style('opacity', .9);
+    div .html('<b>Summary: </b>' + d.summary + '<br/>'  +
+        '<b>Priority: </b>' + d.priority + '<br/>' +
+        '<b>Assignee: </b>' + d.assignee + '<br/>' +
+        '<b>Issuetype: </b>' + d.issuetype + '<br/>' +
+        '<b>Status: </b>' + d.status)
+        .style('left', (d3.event.pageX) + 'px')
+        .style('top', (d3.event.pageY - 28) + 'px');
 }
 
 function handleMouseOut(d, i) {
     d3.select(this).attr('fill', getNodeColorFromStatus);
     div.transition()
         .duration(500)
-        .style("opacity", 0);
+        .style('opacity', 0);
 }
 
 function getStrokeColor(d) {
-    if (querySet.has(d.key)) return "black";
+    if (querySet.has(d.key)) return 'black';
     else return getNodeColorFromStatus;
 }
 
 function getNodeColorFromStatus(node) {
     if (node.status in STATUSCOLORS) return STATUSCOLORS[node.status];
-    else return "black";
+    else return 'black';
 }
 
 function getLineColorFromLinkType(link) {
     if (link.type in LINKCOLORS) return LINKCOLORS[link.type];
-    else return "black";
+    else return 'black';
 }
 
 function ticked() {
