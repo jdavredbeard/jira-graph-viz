@@ -12,6 +12,7 @@ import urllib
 def submit_query(query):
 	jira_configs = Configs()
 	jira_connection = jira_configs.get_jira()
+	jira_base_url = jira_configs.get_url()
 
 	flash('Query submitted: {}'.format(query))
 	dataset, links, query_list, error = get_jira_query_results(
@@ -24,7 +25,7 @@ def submit_query(query):
 		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
 		flash('Share this jira-graph-viz: {}'.format(url))
 
-	return dataset, links, query_list
+	return dataset, links, query_list, jira_base_url
 
 
 def get_jira_query_results(query_string, jira_connection):

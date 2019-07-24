@@ -1,38 +1,36 @@
 
 
-var svg = d3.select('body').append('svg').attr('width', width).attr('height', height),
+var svg = d3.select('body').append('svg').attr('width', WIDTH).attr('height', HEIGHT),
     nodeLink = svg.append('g').attr('class', 'nodeLinks').selectAll('line'),
     node = svg.append('g').attr('class', 'nodes').selectAll('circle'),
     keyLink = svg.append('g').attr('class', 'keyLinks').selectAll('a');
 
-// Define the div for the tooltip
 var div = d3.select('body').append('div')
     .attr('class', 'tooltip')
-    .style('opacity', 0);
 
 var linkForce = d3.forceLink()
     .id(function (link) { return link.key })
 
 var simulation = d3.forceSimulation()
     .force('link', linkForce)
-    .force('charge', d3.forceManyBody().strength(-1000))
-    .force('center', d3.forceCenter(width / 2, height / 2))
+    .force('charge', d3.forceManyBody().strength(FORCE_MANY_BODY_STRENGTH))
+    .force('center', d3.forceCenter(X_CENTER, Y_CENTER))
     .force('x', d3.forceX())
     .force('y', d3.forceY())
-    .force('collision', d3.forceCollide().radius(d => Math.min(NODERADIUS[d.issuetype] * 6, 45)))
-    .force('radial', d3.forceRadial(getRadialForceRadiusFromTicketStatus, width / 2, height / 2).strength(.5))
+    .force('collision', d3.forceCollide().radius(FORCE_COLLIDE_RADIUS))
+    .force('radial', d3.forceRadial(getRadialForceRadiusFromTicketStatus, X_CENTER, Y_CENTER).strength(FORCE_RADIAL_STRENGTH))
     .on('tick', ticked);
 
 var dragDrop = d3.drag().on('start', function (node) {
     node.fx = node.x
     node.fy = node.y
 }).on('drag', function (node) {
-    simulation.alphaTarget(0.6).restart()
+    simulation.alphaTarget(DRAG_ALPHA_TARGET).restart()
     node.fx = d3.event.x
     node.fy = d3.event.y
 }).on('end', function (node) {
     if (!d3.event.active) {
-        simulation.alphaTarget(0)
+        simulation.alphaTarget(DROP_ALPHA_TARGET)
     }
     node.fx = null
     node.fy = null
@@ -114,7 +112,7 @@ function update() {
         .attr('r', getRadiusFromTicketType)
         .attr('fill', getNodeColorFromStatus)
         .attr('stroke', getStrokeColor)
-        .attr('stroke-width', 3)
+        .attr('stroke-width', NODE_BORDER_WIDTH)
         .merge(node)
         .call(dragDrop)
         .on('mouseover', handleMouseOver)
@@ -125,10 +123,10 @@ function update() {
     nodeLink.exit().remove();
     nodeLink = nodeLink.enter()
         .append('line')
-        .attr('stroke-width', 3)
+        .attr('stroke-width', LINK_LINE_WIDTH)
         .attr('stroke', getLineColorFromLinkType)
-        .attr('stroke-dasharray', [5,4])
-        .attr('opacity', .8)
+        .attr('stroke-dasharray', LINK_LINE_DASH_ARRAY)
+        .attr('opacity', LINK_LINE_OPACITY)
         .merge(nodeLink);
 
     keyLink = keyLink.data([...dataset], d => d.key);
@@ -140,10 +138,10 @@ function update() {
         .append('text')
         .text(node => node.key)
         .attr('font-family', 'Helvetica, sans-serif')
-        .attr('font-size', 12)
+        .attr('font-size', KEY_TEXT_FONT_SIZE)
         .attr('font-weight', 'bold')
-        .attr('dx', getDxOffsetFromKeyLength)
-        .attr('dy', getKeyTextOffsetFromTicketType)
+        .attr('dx', getKeyTextDxOffsetFromKeyLength)
+        .attr('dy', getKeyTextDyOffsetFromTicketType)
         .style('cursor', 'pointer')
         .merge(keyLink);
 
@@ -151,28 +149,28 @@ function update() {
 
     simulation.nodes([...dataset])
     simulation.force('link').links([...links]);
-    simulation.alpha(.8).restart();
+    simulation.alpha(RESTART_ALPHA).restart();
 }
 
-function getDxOffsetFromKeyLength(d) {
-    return 0 - (d.key.length * 3)
+function getKeyTextDxOffsetFromKeyLength(d) {
+    return -(d.key.length * KEY_TEXT_DX_OFFSET_MULTIPLIER)
 }
 
-function getKeyTextOffsetFromTicketType(d) {
-    if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype] + 15;
-    return 25;
+function getKeyTextDyOffsetFromTicketType(d) {
+    if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype] + KEY_TEXT_DY_OFFSET;
+    return KEY_TEXT_DY_OFFSET_DEFAULT;
 
 }
 
 function getRadiusFromTicketType(d) {
     if (d.issuetype in NODERADIUS) return NODERADIUS[d.issuetype];
-    return 10;
+    return NODE_RADIUS_DEFAULT;
 
 }
 
 function getRadialForceRadiusFromTicketStatus(d) {
     if (d.status in RADIALFORCERADIUS) return RADIALFORCERADIUS[d.status];
-    return 0;
+    return RADIAL_FORCE_RADIUS_DEFAULT;
 }
 
 function handleClick(d, i) {
@@ -245,22 +243,22 @@ function handleClick(d, i) {
 function handleMouseOver(d, i) {
     d3.select(this).attr('fill', 'orange');
     div.transition()
-        .duration(200)
-        .style('opacity', .9);
+        .duration(MOUSE_OVER_DURATION)
+        .style('opacity', MOUSE_OVER_OPACITY);
     div .html('<b>Summary: </b>' + d.summary + '<br/>'  +
         '<b>Priority: </b>' + d.priority + '<br/>' +
         '<b>Assignee: </b>' + d.assignee + '<br/>' +
         '<b>Issuetype: </b>' + d.issuetype + '<br/>' +
         '<b>Status: </b>' + d.status)
         .style('left', (d3.event.pageX) + 'px')
-        .style('top', (d3.event.pageY - 28) + 'px');
+        .style('top', (d3.event.pageY - TOOL_TIP_Y_OFFSET) + 'px');
 }
 
 function handleMouseOut(d, i) {
     d3.select(this).attr('fill', getNodeColorFromStatus);
     div.transition()
-        .duration(500)
-        .style('opacity', 0);
+        .duration(MOUSE_OUT_DURATION)
+        .style('opacity', MOUSE_OUT_OPACITY);
 }
 
 function getStrokeColor(d) {
