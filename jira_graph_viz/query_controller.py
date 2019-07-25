@@ -31,6 +31,7 @@ def submit_query_with_link_levels(query, link_levels):
 def submit_query(query, link_level):
 	jira_configs = Configs()
 	jira_connection = jira_configs.get_jira()
+	jira_base_url = jira_configs.get_url()
 
 	flash('Query submitted: {}'.format(query))
 	dataset, links, query_set, tickets_next_level, error = get_jira_query_results(
@@ -44,6 +45,7 @@ def submit_query(query, link_level):
 		flash('Share this jira-graph-viz: {}'.format(url))
 
 	return dataset, links, query_set, tickets_next_level
+
 
 
 def get_jira_query_results(query_string, jira_connection, link_level):

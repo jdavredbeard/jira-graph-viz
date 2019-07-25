@@ -29,3 +29,6 @@ class Configs:
     def get_unauthed_jira(self):
         return jira.JIRA(self._url)
 
+    def get_url(self):
+        return self._url
+

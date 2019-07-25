@@ -41,11 +41,39 @@
 <!--        </form>-->
         <script>
             // Data from backend call to Jira api is inserted here through templating - do not modify.
+            var dataset;
+            var links;
+            var querySet;
+            var jiraBaseUrl;
+
+            try {
+                dataset = new Set({{ dataset | tojson }});
+            } catch(error) {
+                dataset = new Set();
+            }
+
+            try {
+                links = new Set({{ links | tojson }});
+            } catch (error) {
+                links = new Set();
+            }
+
+            try {
+                querySet = new Set({{ query_list | tojson }});
+            } catch(error) {
+                querySet = new Set();
+            }
+
+            try {
+                jiraBaseUrl = '{{ jira_base_url }}'
+            } catch(error) {
+                jiraBaseUrl = '';
+            }
 
             var dataset = new Set({{ dataset | tojson }});
             var links = new Set({{ links | tojson }});
             var querySet = new Set({{ query_list | tojson }});
-            // var nodeSet = new Set(querySet);
+
 
         </script>
         <script src="{{ url_for('static', filename='constants.js') }}"></script>
