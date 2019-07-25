@@ -117,7 +117,6 @@ function update() {
         .call(dragDrop)
         .on('mouseover', handleMouseOver)
         .on('mouseout', handleMouseOut)
-        .on('click', handleClick);
 
     nodeLink = nodeLink.data([...links], d => d.source + ' ' + d.target);
     nodeLink.exit().remove();
@@ -171,73 +170,6 @@ function getRadiusFromTicketType(d) {
 function getRadialForceRadiusFromTicketStatus(d) {
     if (d.status in RADIALFORCERADIUS) return RADIALFORCERADIUS[d.status];
     return RADIAL_FORCE_RADIUS_DEFAULT;
-}
-
-function handleClick(d, i) {
-    var issuelinks = d.issuelinks;
-    var issueAdded = false;
-    if (!d3.select(this).classed('clicked') && 'issuelinks' in d) {
-        issuelinks.forEach(issue => {
-            if (!nodeSet.has(issue.key)) {
-                issue['addedBy'] = d.key;
-                issue['x'] = d.x;
-                issue['y'] = d.y;
-                dataset.add(issue);
-                nodeSet.add(issue.key);
-                links.add({
-                    'addedBy': d.key,
-                    'source': d.key,
-                    'target': issue.key,
-                    'type': issue.type
-                });
-                issueAdded = true;
-            }
-        });
-
-        if (issueAdded) {
-            d.fx = d.x;
-            d.fy = d.y;
-        }
-        console.log('adding linked tickets of clicked ticket');
-        console.log('nodeSet size: ' + nodeSet.size);
-        console.log('querySet size: ' + querySet.size);
-        console.log('links size: ' + links.size);
-        console.log('dataset size: ' + dataset.size);
-        console.log('nodeSet: ' + [...nodeSet].toString());
-
-    }
-    else if (d3.select(this).classed('clicked') && 'issuelinks' in d) {
-        issuelinks.forEach(issue => {
-            if (!querySet.has(issue.key)) {
-                nodeSet.delete(issue.key);
-            }
-        });
-
-        dataset.forEach((ticket, j) => {
-            if ('addedBy' in ticket && ticket.addedBy === d.key) {
-                dataset.delete(ticket);
-            }
-        });
-
-        links.forEach((link, k) => {
-            if ('addedBy' in link && link.addedBy == d.key) {
-                links.delete(link);
-            }
-        });
-
-        d.fx = null;
-        d.fy = null;
-
-        console.log('deleting linked tickets of clicked ticket');
-        console.log('nodeSet size: ' + nodeSet.size);
-        console.log('querySet size: ' + querySet.size);
-        console.log('links size: ' + links.size);
-        console.log('dataset size: ' + dataset.size);
-        console.log('nodeSet: ' + [...nodeSet].toString());
-    }
-
-    d3.select(this).classed('clicked', !d3.select(this).classed('clicked'));
-    update();
 }
 
 function handleMouseOver(d, i) {
