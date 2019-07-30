@@ -31,7 +31,6 @@ def submit_query_with_link_levels(query, link_levels):
 def submit_query(query, link_level):
 	jira_configs = Configs()
 	jira_connection = jira_configs.get_jira()
-	jira_base_url = jira_configs.get_url()
 
 	flash('Query submitted: {}'.format(query))
 	dataset, links, query_set, tickets_next_level, error = get_jira_query_results(
@@ -41,11 +40,11 @@ def submit_query(query, link_level):
 		flash('Error Code: {} - {}'.format(error.status_code, error.text))
 	else:
 		flash('Issues in query results: {}'.format(len(dataset)))
-		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
-		flash('Share this jira-graph-viz: {}'.format(url))
+		if link_level == 0:
+			url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
+			flash('Share this jira-graph-viz: {}'.format(url))
 
 	return dataset, links, query_set, tickets_next_level
-
 
 
 def get_jira_query_results(query_string, jira_connection, link_level):

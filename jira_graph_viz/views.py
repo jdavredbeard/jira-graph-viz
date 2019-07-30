@@ -15,9 +15,12 @@ def index():
 	dataset = []
 	links = []
 	query_list = []
-	jira_base_url = Configs.get_url()
 
-	link_levels = 2
+	configs = Configs()
+
+	jira_base_url = configs.get_url()
+
+	link_levels = 4
 
 	if form.validate_on_submit():
 		dataset,links,query_list = submit_query_with_link_levels(form.query.data, link_levels)
