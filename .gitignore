@@ -15,4 +15,4 @@ app/__pycache__/routes.cpython-36.pyc
 *.pyc
 app/*.pyc
 jira-graph-viz-venv/**
-app/.env
+.env
