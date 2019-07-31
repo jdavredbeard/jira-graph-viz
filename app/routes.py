@@ -46,11 +46,15 @@ def submit_query(query, authed_jira):
 	return render_template('index.html', form=form, dataset=dataset, links=links, query_list=query_list)
 
 def add_children_of_epics_in_query_epic_set_to_dataset(dataset, query_epic_set, authed_jira):
-	if query_epic_set:
+	if len(query_epic_set) > 0:
 		epic_link_hash = {}
-		query_epic_tuple = tuple(query_epic_set)
+		if len(query_epic_set) > 1:
+			query_epics_for_epic_link_query = tuple(query_epic_set)
+		else:
+			query_epics_for_epic_link_query = '({})'.format(query_epic_set.pop())
+
 		epic_link_dataset, _, _, _, _, _ = get_jira_query_results(
-			query_string='"Epic Link" in {}'.format(query_epic_tuple), threading=True, authed_jira=authed_jira)
+			query_string='"Epic Link" in {}'.format(query_epics_for_epic_link_query), threading=True, authed_jira=authed_jira)
 		for issue in epic_link_dataset:
 			for linked_issue in issue['issuelinks']:
 				if 'issuetype' in linked_issue and linked_issue['issuetype'] == 'Epic':
