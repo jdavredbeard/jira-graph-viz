@@ -17,4 +17,8 @@ app/*.pyc
 jira-graph-viz-venv/**
 /instance/*
 .env
+<<<<<<< HEAD
 .vscode/*
+=======
+.vscode/**
+>>>>>>> open-source-version
