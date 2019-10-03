@@ -1,0 +1,79 @@
+
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>jira-graph-viz</title>
+        <script src="{{ url_for('static', filename='lib/d3.min.js') }}"></script>
+        <link rel="stylesheet" href="{{ url_for('static', filename='jira-graph-viz.css') }}">
+    </head>
+    <body>
+    	<h2>jira-graph-viz</h2>
+        <form action="" method="post">
+        	{{ form.hidden_tag() }}
+        	<p>
+        		{{ form.query.label }}<br>
+        		{{ form.query(size=100) }}
+        	</p>
+        	<p>
+        		{{ form.submit() }}
+        	</p>
+
+        </form>
+        <br>
+        
+        
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <ul>
+            {% for message in messages %}
+            <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endwith %}
+        <br>
+        <hr>
+
+        <form>
+            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
+            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
+        </form>
+        <script>
+            // Data from backend call to Jira api is inserted here through templating - do not modify.
+            var dataset;
+            var links;
+            var querySet;
+            var jiraBaseUrl;
+
+            try {
+                dataset = new Set({{ dataset | tojson }});
+            } catch(error) {
+                dataset = new Set();
+            }
+
+            try {
+                links = new Set({{ links | tojson }});
+            } catch (error) {
+                links = new Set();
+            }
+
+            try {
+                querySet = new Set({{ query_list | tojson }});
+            } catch(error) {
+                querySet = new Set();
+            }
+
+            try {
+                jiraBaseUrl = '{{ jira_base_url }}'
+            } catch(error) {
+                jiraBaseUrl = '';
+            }
+
+            var nodeSet = new Set(querySet);
+
+        </script>
+        <script src="{{ url_for('static', filename='constants.js') }}"></script>
+        <script src="{{ url_for('static', filename='jira-graph-viz.js') }}"></script>
+    </body>
+</html>
