@@ -17,3 +17,4 @@ app/*.pyc
 jira-graph-viz-venv/**
 /instance/*
 .env
+.vscode/*
