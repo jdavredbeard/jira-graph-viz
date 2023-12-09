@@ -111,12 +111,12 @@ const RADIALFORCERADIUS = {
     "Ready for Production": HEIGHT * 0.2,
     "Ready for Release": HEIGHT * 0.2,
     "Ready to Deploy": HEIGHT * 0.2,
-    "Deployed": HEIGHT * 0.25, // green
-    "Done": HEIGHT * 0.25, // green
-    "Testing Passed": HEIGHT * 0.25, // green
-    "Released": HEIGHT * 0.25, //green
-    "Completed": HEIGHT * 0.25, //green
-    "Complete": HEIGHT   * 0.25, //green
+    "Deployed": HEIGHT * 0.25,
+    "Done": HEIGHT * 0.25,
+    "Testing Passed": HEIGHT * 0.25,
+    "Released": HEIGHT * 0.25,
+    "Completed": HEIGHT * 0.25,
+    "Complete": HEIGHT   * 0.25,
 }
 
 // Defines the color of the lines between nodes, representing the type of link or relationship
