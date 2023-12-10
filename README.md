@@ -5,8 +5,8 @@ To run it locally:
 Make sure you have python and pip installed. Starting a virtualenv is recommended.
 
 After cloning the repo:
-- create a `.env` file in the project directory and set a cryptographic key for the Flask-WTF webform with `export JIRA-GRAPH-VIZ-KEY={your-secret-key}`
-- source the `.env` file
+- set your Jira api token with `export JIRA_API_TOKEN={your-jira-api-token}`
+- set your Jira base url with `export JIRA_BASE_URL={your-jira-base-url}` By default, jira-graph-viz pulls data from Atlassian's public service desk jira at https://jira.atlassian.com.
 - `pip install -r requirements.txt`
 - `gunicorn jira-graph-viz`
 - Open `localhost:8000` in browser
@@ -26,11 +26,6 @@ Visual Encoding:
 - links between ticket nodes are color coded by link type:
 - node radius is coded by issuetype:
 
-By default, jira-graph-viz pulls data from Atlassian's public service desk jira at https://jira.atlassian.com.
-
-- To point jira-graph-viz at your jira instance, edit `instance/config.ini` 
-  - replace `url` field value with the base url of your jira instance
-  - enter authenication details in the `username` and `password` fields
 - To configure the visualization for your jira data, in `jira_graph_viz/static/constants.js`:
     - update `STATUSCOLORS` dictionary with each ticket status from your instance and the color you want associated with them. 
     - update`RADIALFORCERADIUS` dictionary with each ticket status from your instance and the associated radial force radius you want associated with it (meaning, the radius of the circle to which tickets of that status should be attracted) 

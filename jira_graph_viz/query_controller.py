@@ -22,14 +22,17 @@ import logging
 from jira_graph_viz.jira_client import search_jira_threaded
 from jira_graph_viz.issue_parser import parse_data_from_jira_api_response
 from flask import flash, request
-from jira_graph_viz_config import Configs
 import urllib
+import jira
+import os
 
+JIRA_BASE_URL = os.environ.get('JIRA_BASE_URL', 'https://jira.atlassian.com')
+
+def get_token_authed_jira():
+    return jira.JIRA(options={'server': JIRA_BASE_URL})
 
 def submit_query(query):
-	jira_configs = Configs()
-	jira_connection = jira_configs.get_jira()
-	jira_base_url = jira_configs.get_url()
+	jira_connection = get_token_authed_jira()
 
 	flash('Query submitted: {}'.format(query))
 	dataset, links, query_list, linked_epic_query_string, query_epic_set, error = get_jira_query_results(
@@ -44,7 +47,7 @@ def submit_query(query):
 		url = request.url_root + "index?query=" + urllib.parse.quote(str(query))
 		flash('Share this jira-graph-viz: {}'.format(url))
 
-	return dataset, links, query_list, jira_base_url
+	return dataset, links, query_list, JIRA_BASE_URL
 
 
 def get_jira_query_results(query_string, jira_connection):

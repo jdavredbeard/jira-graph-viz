@@ -27,19 +27,10 @@ def search_jira_threaded(query, jira_connection):
     full_query_results = []
     threads = []
     max_query_threads = int(os.environ.get('MAX_QUERY_THREADS', 8))
-
-    num_threads_needed = calculate_num_threads_from_total_results(query, jira_connection)
-
-    max_threads = min(num_threads_needed, max_query_threads)
-
-    logging.debug('max_threads = {}'.format(max_threads))
-
-    gunicorn_threads = int(os.environ.get('GUNICORN_THREADS', 5))
-
     num_started_threads = 0
 
-    while num_started_threads <= num_threads_needed:
-        while threading.active_count() <= max_threads + gunicorn_threads:
+    while num_started_threads <= max_query_threads:
+        while threading.active_count() <= max_query_threads:
             logging.debug('threading.active_count() = {}'.format(threading.active_count()))
             start_at = 100 * num_started_threads
             max_results = 100 * (num_started_threads + 1)

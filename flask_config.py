@@ -16,6 +16,7 @@
 # along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/>
 
 import os
+import uuid
 
 class Config(object):
-  SECRET_KEY = os.environ.get('CSRF_KEY')
+  SECRET_KEY = str(uuid.uuid4())
