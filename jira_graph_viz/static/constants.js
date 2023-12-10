@@ -21,8 +21,8 @@ const JIRA_BASE_URL = jiraBaseUrl + '/browse/';
 
 
 // Visualization sizing constants:
-const HEIGHT = 1600 + querySet.size * 5;
-const WIDTH = 1600 + querySet.size * 5;
+const HEIGHT = 1600 + querySet.size * 2;
+const WIDTH = 1600 + querySet.size * 2;
 const X_CENTER = WIDTH / 2;
 const Y_CENTER = HEIGHT / 2;
 
