@@ -1,4 +1,19 @@
+// Copyright 2019 Elsevier Inc.
 
+// This file is part of jira-graph-viz.
+
+// jira-graph-viz is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+
+// jira-graph-viz is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/>
 
 // The base url of the jira server where you keep your tickets - the keys displayed below the nodes will link to the
 // tickets using this url
@@ -60,36 +75,48 @@ const MOUSE_OUT_OPACITY = 0;
 // Defines the colors of the nodes based on their status
 
 const STATUSCOLORS = {
-    // suggestion statuses
-    'Gathering Interest': '#8e8e93', //grey
-    
-    // bug statuses
-    'Open': '#8e8e93', //grey
-    'Needs Verification': '#ffcc00', //yellow
-    'Verified': '#ff8300', //bright orange
-    'Awaiting Development': 'red',
-    'Awaiting Soak': 'purple',
-    'In Progress': '#007aff', //dark blue
-    'Technical Review': '#0D98BA', //blue-green
-    'Soaking': '#0D98BA', //blue-green
-    'Resolved': '#4cd964', // green
-    'Closed': '#4cd964', // green
+    "Draft": "#E8E8E8", //light grey
+    "To Do": "#8e8e93", //grey
+    "Icebox": "aqua",
+    "In Progress": "#ffcc00", //yellow
+    "Code Review": "#ff8300", //bright orange
+    "Blocked": "red",
+    "Testing Failed": "purple",
+    "Ready for Testing": "#007aff", //dark blue
+    "Ready for Acceptance": "#0D98BA", //blue-green
+    "Ready for Production": "#0D98BA", //blue-green
+    "Ready for Release": "#0D98BA", //blue-green
+    "Ready to Deploy": "#0D98BA", //blue-green
+    "Deployed": "#4cd964", // green
+    "Done": "#4cd964", // green
+    "Testing Passed": "#4cd964", // green
+    "Released": "#4cd964", //green
+    "Completed": "#4cd964", //green
+    "Complete": "#4cd964", //green
 }
 
 // Defines the radius of the ring to which nodes with a given status are attracted in
 // the force simulation.
 
 const RADIALFORCERADIUS = {
-    'Open': 0,
-    'Needs Verification': HEIGHT * 0.05,
-    'Verified': HEIGHT * 0.1,
-    'Awaiting Development': HEIGHT * 0.1,
-    'Awaiting Soak': HEIGHT * 0.15,
-    'In Progress': HEIGHT * 0.2,
-    'Technical Review': HEIGHT * 0.25,
-    'Soaking': HEIGHT * 0.28,
-    'Resolved': HEIGHT * 0.3,
-    'Closed': HEIGHT * 0.33
+    "Draft": 0,
+    "To Do": HEIGHT * 0.05,
+    "Icebox": HEIGHT * 0.3,
+    "In Progress": HEIGHT * 0.1,
+    "Code Review": HEIGHT * 0.1,
+    "Blocked": 0,
+    "Testing Failed": 0,
+    "Ready for Testing": HEIGHT * 0.15,
+    "Ready for Acceptance": HEIGHT * 0.2,
+    "Ready for Production": HEIGHT * 0.2,
+    "Ready for Release": HEIGHT * 0.2,
+    "Ready to Deploy": HEIGHT * 0.2,
+    "Deployed": HEIGHT * 0.25,
+    "Done": HEIGHT * 0.25,
+    "Testing Passed": HEIGHT * 0.25,
+    "Released": HEIGHT * 0.25,
+    "Completed": HEIGHT * 0.25,
+    "Complete": HEIGHT   * 0.25,
 }
 
 // Defines the color of the lines between nodes, representing the type of link or relationship

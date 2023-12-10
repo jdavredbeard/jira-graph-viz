@@ -1,9 +1,28 @@
-def parse_data_from_jira_api_response(issues, link_level):
-    tickets, links_in_tickets, query_set, tickets_next_level = parse_issues(issues, link_level)
-    return tickets, links_in_tickets, query_set, tickets_next_level, None
+# Copyright 2019 Elsevier Inc.
+
+# This file is part of jira-graph-viz.
+
+# jira-graph-viz is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+
+# jira-graph-viz is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+# You should have received a copy of the GNU General Public License
+# along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/>
+
+def parse_data_from_jira_api_response(issues):
+    tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parse_issues(issues)
+    return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set, None
 
 
-def parse_issues(issues, link_level):
+def parse_issues(issues):
+    linked_epic_set = set()
+    query_epic_set = set()
     query_set = set()
     tickets = []
     all_links = []
@@ -19,6 +38,7 @@ def parse_issues(issues, link_level):
         add_issue_links_to_link_data(issue, links, link_data, all_links)
         add_parent_to_link_data(issue, link_data, all_links)
         add_subtasks_to_link_data(issue, subtasks, link_data, all_links)
+        add_epic_to_link_data(issue, linked_epic_set, link_data, all_links)
 
         if parsed_issue['key'] not in query_set:
             tickets.append(parsed_issue)
@@ -163,3 +183,28 @@ def add_issue_links_to_link_data(issue, links, link_data, all_links):
                 })
 
             link_data.append(parsed_issue)
+
+
+def create_linked_epic_query_string(linked_epic_set):
+    linked_epic_list = list(linked_epic_set)
+    return 'issuekey in (' + ','.join(linked_epic_list) + ')'
+
+
+def add_epic_to_link_data(issue, linked_epic_set, link_data, all_links):
+    # customfield_10007 = epic key
+    if "customfield_10007" in vars(issue.fields) and issue.fields.customfield_10007 is not None:
+
+        linked_epic_set.add(issue.fields.customfield_10007)
+
+        data = {
+            'issuetype': 'Epic',
+            'key': issue.fields.customfield_10007,
+        }
+
+        link_data.append(data)
+
+        all_links.append({
+            'source': issue.key,
+            'target': issue.fields.customfield_10007,
+            'type': 'epic parent'
+        })
