@@ -23,11 +23,10 @@ After cloning the repo:
 
 
 ### Visual Encoding:
-- tickets selected by the query have a black border; linked tickets not selected by the query have no border
-- tickets are color coded by status. tickets of different statuses also organize themselves into concentric rings
+- tickets selected by the query have a black border; linked tickets not selected by the query have no border.
+- tickets are color coded by status. tickets of different statuses also organize themselves into concentric rings.
 - links between tickets are color coded by link type
-- node radius (radius of the circle that represents a ticket) is coded by issuetype
-
+- node radius (radius of the circle that represents a ticket) is coded by issuetype.
 - To configure the visualization for your jira data, in `jira_graph_viz/static/constants.js`:
     - update `STATUSCOLORS` dictionary with each ticket status from your jira instance and the color you want associated with them. 
     - update`RADIALFORCERADIUS` dictionary with each ticket status from your jira instance and the associated radial force radius you want associated with it (meaning, the radius of the concentric circle to which tickets of that status should be attracted) 
