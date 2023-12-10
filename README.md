@@ -20,6 +20,7 @@ After cloning the repo:
 - Radio buttons toggle visibility of all tickets that are linked to the tickets selected by the query.
 - Nodes are draggable to allow for reorganization.
 - On mouseover, ticket color changes to orange and tooltip with basic ticket information is shown.
+- Large datasets will require you to zoom out to fit the visualization on the screen.
 
 
 ### Visual Encoding:
