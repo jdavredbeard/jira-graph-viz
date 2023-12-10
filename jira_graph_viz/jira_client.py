@@ -41,9 +41,9 @@ def search_jira_threaded(query, jira_connection):
 
     for thread in threads:
         if thread.is_alive():
-            logging.debug('{} still alive'.format(thread.getName()))
+            # logging.debug('{} still alive'.format(thread.getName()))
             thread.join()
-            logging.debug('{} joined {}'.format(thread.getName(), threading.currentThread().getName()))
+            # logging.debug('{} joined {}'.format(thread.getName(), threading.currentThread().getName()))
     logging.debug('Returning full_query_results')
     return full_query_results
 
@@ -53,8 +53,8 @@ def calculate_num_threads_from_total_results(query, jira_connection):
     total_results = total_check_query.total
     num_threads_needed = math.ceil(total_results / 100)
 
-    logging.debug('total = {}'.format(total_results))
-    logging.debug('num_threads_needed = {}'.format(num_threads_needed))
+    # logging.debug('total = {}'.format(total_results))
+    # logging.debug('num_threads_needed = {}'.format(num_threads_needed))
     return num_threads_needed
 
 
@@ -66,4 +66,4 @@ def threaded_search_job(query, jira_connection, start_at, max_results, full_quer
         startAt=start_at,
         maxResults=max_results)
     full_query_results.extend(threaded_search_job_query_results)
-    logging.debug('Done')
+    # logging.debug('Done')

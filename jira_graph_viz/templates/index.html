@@ -51,10 +51,10 @@ along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/> -->
         <br>
         <hr>
 
-        <form>
-            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>
-            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>
-        </form>
+<!--        <form>-->
+<!--            <input type="radio" name="allLinks" value="query" id="queryTicketsOnly" checked>Show only tickets in query</input><br>-->
+<!--            <input type="radio" name="allLinks" value="all" id="allLinkedTickets">Show all linked tickets</input>-->
+<!--        </form>-->
         <script>
             // Data from backend call to Jira api is inserted here through templating - do not modify.
             var dataset;
@@ -86,7 +86,10 @@ along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/> -->
                 jiraBaseUrl = '';
             }
 
-            var nodeSet = new Set(querySet);
+            var dataset = new Set({{ dataset | tojson }});
+            var links = new Set({{ links | tojson }});
+            var querySet = new Set({{ query_list | tojson }});
+
 
         </script>
         <script src="{{ url_for('static', filename='constants.js') }}"></script>

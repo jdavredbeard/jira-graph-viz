@@ -15,17 +15,12 @@
 # You should have received a copy of the GNU General Public License
 # along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/>
 
-def parse_data_from_jira_api_response(issues):
-    tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parse_issues(issues)
-    return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set, None
-
-
-def parse_issues(issues):
+def parse_issues(issues, link_level):
     linked_epic_set = set()
-    query_epic_set = set()
     query_set = set()
     tickets = []
     all_links = []
+    next_level_set = set()
 
     for issue in issues:
         parsed_issue = create_parsed_issue(issue)
@@ -39,19 +34,21 @@ def parse_issues(issues):
         add_subtasks_to_link_data(issue, subtasks, link_data, all_links)
         add_epic_to_link_data(issue, linked_epic_set, link_data, all_links)
 
-        parsed_issue = add_links_to_parsed_issue(parsed_issue, link_data)
+        if parsed_issue['key'] not in query_set:
+            tickets.append(parsed_issue)
 
-        tickets.append(parsed_issue)
+        tickets.extend(link_data)
 
-        if issue.fields.issuetype.name == 'Epic':
-            query_epic_set.add(issue.key)
+        link_data_keys = [link['key'] for link in link_data]
+
+        next_level_set = next_level_set.union(set(link_data_keys))
 
         query_set.add(issue.key)
 
-    links_in_tickets = add_links_in_query_set_to_links_in_tickets(all_links, query_set)
-    query_list = list(query_set)
-    linked_epic_query_string = create_linked_epic_query_string(linked_epic_set)
-    return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set
+    links_in_tickets, tickets_next_level = add_links_in_query_set_to_links_in_tickets(all_links, query_set, next_level_set, link_level)
+
+    query_set = query_set.union(next_level_set)
+    return tickets, links_in_tickets, query_set, tickets_next_level, None
 
 
 def create_parsed_issue(issue):
@@ -108,13 +105,18 @@ def add_links_to_parsed_issue(parsed_issue, link_data):
     return parsed_issue
 
 
-def add_links_in_query_set_to_links_in_tickets(all_links, query_set):
+def add_links_in_query_set_to_links_in_tickets(all_links, query_set, next_level_set, link_level):
     links_in_tickets = []
+    tickets_next_level = set()
     for link in all_links:
         if link['source'] in query_set and link['target'] in query_set:
             link['addedBy'] = 'query'
             links_in_tickets.append(link)
-    return links_in_tickets
+        elif link['source'] in query_set and link['target'] in next_level_set:
+            link['addedBy'] = '{}, link level {}'.format(link['source'],link_level)
+            links_in_tickets.append(link)
+            tickets_next_level.add(link['target'])
+    return links_in_tickets, tickets_next_level
 
 
 def add_subtasks_to_link_data(issue, subtasks, link_data, all_links):
