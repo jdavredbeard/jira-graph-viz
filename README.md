@@ -1,6 +1,6 @@
 ## jira-graph-viz
 `jira-graph-viz` is a flask app that provides a force directed graph visualization of jira ticket data built in d3.  
-`jira-graph-viz` can be useful to get a high level view of work in a sprint, or or how work is connected to upstream or downstream dependencies.  
+`jira-graph-viz` can be used to get a high level view of work in a sprint, or to visualize how stories are connected to dependencies, epics, subtasks, etc.  
 `jira-graph-viz` is served with gunicorn and has a multi-threaded backend to get large queries from the jira api faster.   
   
 ### To run it locally:
