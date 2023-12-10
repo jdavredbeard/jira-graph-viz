@@ -15,14 +15,8 @@
 # You should have received a copy of the GNU General Public License
 # along with jira-graph-viz.  If not, see <https://www.gnu.org/licenses/>
 
-def parse_data_from_jira_api_response(issues):
-    tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set = parse_issues(issues)
-    return tickets, links_in_tickets, query_list, linked_epic_query_string, query_epic_set, None
-
-
-def parse_issues(issues):
+def parse_issues(issues, link_level):
     linked_epic_set = set()
-    query_epic_set = set()
     query_set = set()
     tickets = []
     all_links = []
@@ -54,7 +48,7 @@ def parse_issues(issues):
     links_in_tickets, tickets_next_level = add_links_in_query_set_to_links_in_tickets(all_links, query_set, next_level_set, link_level)
 
     query_set = query_set.union(next_level_set)
-    return tickets, links_in_tickets, query_set, tickets_next_level
+    return tickets, links_in_tickets, query_set, tickets_next_level, None
 
 
 def create_parsed_issue(issue):
